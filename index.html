@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chetak Creation - Main Website</title>
+    <title>Chetak Creation - Official Portfolio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Supabase JS Library -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -13,122 +13,175 @@
             --secondary: #28D1B4;
             --dark: #1e1e1e;
             --light: #f8f9fa;
+            --gray: #e9ecef;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: var(--light); color: var(--dark); }
+        body { background-color: var(--light); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
         nav { background-color: var(--dark); color: white; padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; }
-        .logo { font-size: 22px; font-weight: bold; color: var(--primary); }
-        .container { max-width: 1000px; margin: 30px auto; padding: 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: var(--primary); text-decoration: none; }
+        .container { max-width: 1100px; margin: 30px auto; padding: 20px; flex: 1; width: 100%; }
         
-        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
-        .search-box input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .search-box button { padding: 12px 25px; background: var(--primary); color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
-
-        .posts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        .post-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        .post-card h3 { margin-bottom: 10px; color: var(--dark); }
-        .post-card p { font-size: 14px; color: #555; margin-bottom: 10px; }
-        .post-card .tag { display: inline-block; background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; margin-bottom: 10px; }
-        .post-card img, .post-card video { width: 100%; border-radius: 6px; max-height: 200px; object-fit: cover; }
+        .section-title { margin: 30px 0 15px; font-size: 24px; border-bottom: 3px solid var(--primary); display: inline-block; padding-bottom: 5px; }
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 40px; }
+        
+        .work-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.06); cursor: pointer; transition: transform 0.2s; display: flex; flex-direction: column; }
+        .work-card:hover { transform: translateY(-5px); }
+        .work-card-media { height: 180px; background: #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .work-card-media img, .work-card-media video { width: 100%; height: 100%; object-fit: cover; }
+        .work-card-content { padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+        .work-card-content h3 { font-size: 18px; margin-bottom: 8px; color: var(--dark); }
+        .work-card-content p { font-size: 14px; color: #666; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Modal View */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: white; border-radius: 10px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 30px; position: relative; }
+        .close-modal { position: absolute; right: 20px; top: 15px; font-size: 26px; cursor: pointer; color: #333; }
+        .modal-media { width: 100%; max-height: 350px; margin: 15px 0; border-radius: 8px; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
+        .modal-media img, .modal-media video { max-width: 100%; max-height: 350px; object-fit: contain; }
+        
+        footer { background: var(--dark); color: white; text-align: center; padding: 30px 20px; margin-top: auto; }
+        .social-links { display: flex; justify-content: center; gap: 20px; margin-top: 15px; }
+        .social-links a { color: white; font-size: 24px; transition: color 0.2s; }
+        .social-links a:hover { color: var(--primary); }
     </style>
 </head>
 <body>
-
     <nav>
-        <span class="logo"><i class="fa-solid Layers"></i> Chetak Creation</span>
+        <a href="#" id="navLogo" class="logo">Chetak Creation</a>
     </nav>
-
     <div class="container">
-        <!-- Search Box -->
-        <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search by hashtag (e.g. #video)...">
-            <button onclick="searchPosts()">Search</button>
+        <!-- Design Section -->
+        <h2 class="section-title">Design Works</h2>
+        <div id="designsGrid" class="grid-container">
+            <p style="color:#777;">Loading...</p>
         </div>
-
-        <!-- Display Posts Grid -->
-        <div id="postsContainer" class="posts-grid">
-            <p>Loading posts...</p>
+        <!-- Writings Section -->
+        <h2 class="section-title">Blogs & Writings</h2>
+        <div id="writingsGrid" class="grid-container">
+            <p style="color:#777;">Loading...</p>
+        </div>
+        <!-- Editing Section -->
+        <h2 class="section-title">Editing Works</h2>
+        <div id="editingGrid" class="grid-container">
+            <p style="color:#777;">Loading...</p>
         </div>
     </div>
 
+    <!-- Modal Full View -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="color: var(--primary); margin-bottom: 10px;"></h2>
+            <div class="modal-media" id="modalMediaContainer"></div>
+            <p id="modalDesc" style="font-size: 15px; line-height: 1.6; color: #333; white-space: pre-wrap;"></p>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Chetak Creation. All rights reserved.</p>
+        <div class="social-links">
+            <a href="https://youtube.com" target="_blank"><i class="fa-brands fa-youtube"></i></a>
+            <a href="https://instagram.com" target="_blank"><i class="fa-brands fa-instagram"></i></a>
+            <a href="https://facebook.com" target="_blank"><i class="fa-brands fa-facebook"></i></a>
+            <a href="https://wa.me" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
+        </div>
+    </footer>
+
     <script>
         // 
-        const supabaseUrl = 'YOUR_SUPABASE_URL'; // sb_secret_I06jPUu4JdZrlv42ngwJ9Q_LhuDybuU
-        const supabaseKey = 'YOUR_SUPABASE_KEY'; // sb_publishable_kynVvOzZH7mzKYik0Io0ug_zfvGEkMO
+        const supabaseUrl = 'YOUR_SUPABASE_URL'; sb_secret_5USKJdProEiJDFE0wMk6iA_-RRVN-EE
+        const supabaseKey = 'YOUR_SUPABASE_KEY'; sb_publishable_kynVvOzZH7mzKYik0Io0ug_zfvGEkMO
         
         const { createClient } = supabase;
         const _supabase = createClient(supabaseUrl, supabaseKey);
 
         // 
-        async function loadAllPosts() {
-            const container = document.getElementById('postsContainer');
-            const { data, error } = await _supabase.from('posts').select('*').order('id', { ascending: false });
+        async function loadAllSections() {
+            const { data: posts, error } = await _supabase.from('posts').select('*').order('id', { ascending: false });
 
             if (error) {
-                container.innerHTML = `<p>Error loading posts: ${error.message}</p>`;
+                console.error("Error loading posts:", error);
                 return;
             }
 
-            displayPosts(data);
+            renderSection('designs', 'designsGrid', posts);
+            renderSection('writings', 'writingsGrid', posts);
+            renderSection('editing', 'editingGrid', posts);
         }
 
-        // 
-        async function searchPosts() {
-            const query = document.getElementById('searchInput.value') || document.getElementById('searchInput').value.trim();
-            const container = document.getElementById('postsContainer');
-            
-            let queryBuilder = _supabase.from('posts').select('*');
+        function renderSection(category, gridId, posts) {
+            const grid = document.getElementById(gridId);
+            const filteredPosts = posts.filter(p => p.category === category);
 
-            if (query) {
-                queryBuilder = queryBuilder.ilike('hashtag', `%${query}%`);
-            }
-
-            const { data, error } = await queryBuilder.order('id', { ascending: false });
-
-            if (error) {
-                container.innerHTML = `<p>Search error: ${error.message}</p>`;
-                return;
-            }
-
-            displayPosts(data);
-        }
-
-        // 
-        function displayPosts(posts) {
-            const container = document.getElementById('postsContainer');
-            if (!posts || posts.length === 0) {
-                container.innerHTML = `<p>No content found.</p>`;
+            if(filteredPosts.length === 0) {
+                grid.innerHTML = `<p style="color:#777;">No items published yet.</p>`;
                 return;
             }
 
             let html = '';
-            posts.forEach(post => {
-                let mediaTag = '';
-                if (post.file_url) {
-                    if (post.file_url.match(/\.(mp4|webm|ogg)$/i)) {
-                        mediaTag = `<video src="${post.file_url}" controls></video>`;
-                    } else if (post.file_url.match(/\.pdf$/i)) {
-                        mediaTag = `<a href="${post.file_url}" target="_blank" style="display:block; padding:10px; background:#eee; text-align:center; border-radius:4px; margin-bottom:10px;"><i class="fa-solid fa-file-pdf"></i> View PDF Document</a>`;
+            filteredPosts.forEach((item) => {
+                let mediaElement = '';
+                if(item.file_url) {
+                    if(item.file_url.match(/\.(mp4|webm|ogg)$/i)) {
+                        mediaElement = `<video src="${item.file_url}"></video>`;
+                    } else if(item.file_url.match(/\.pdf$/i)) {
+                        mediaElement = `<div style="padding:20px; text-align:center; color:#555;"><i class="fa-solid fa-file-pdf fa-3x"></i><p>PDF Document</p></div>`;
                     } else {
-                        mediaTag = `<img src="${post.file_url}" alt="Media">`;
+                        mediaElement = `<img src="${item.file_url}" alt="${item.title}">`;
                     }
+                } else {
+                    mediaElement = `<div style="padding:20px; text-align:center; color:#555;"><i class="fa-solid fa-file-lines fa-3x"></i><p>No Media</p></div>`;
                 }
 
                 html += `
-                    <div class="post-card">
-                        <span class="tag">${post.hashtag}</span>
-                        <h3>${post.title}</h3>
-                        <p>${post.content}</p>
-                        ${mediaTag}
+                    <div class="work-card" onclick='openModal(${JSON.stringify(item)})'>
+                        <div class="work-card-media">${mediaElement}</div>
+                        <div class="work-card-content">
+                            <div>
+                                <h3>${item.title}</h3>
+                                <p>${item.content}</p>
+                            </div>
+                            <span style="color:var(--primary); font-size:13px; font-weight:bold; margin-top:10px;">Read More / View <i class="fa-solid fa-arrow-right"></i></span>
+                        </div>
                     </div>
                 `;
             });
+            grid.innerHTML = html;
+        }
 
-            container.innerHTML = html;
+        function openModal(item) {
+            document.getElementById('modalTitle').innerText = item.title;
+            document.getElementById('modalDesc').innerText = item.content;
+            let mediaContainer = document.getElementById('modalMediaContainer');
+            
+            if(item.file_url) {
+                if(item.file_url.match(/\.(mp4|webm|ogg)$/i)) {
+                    mediaContainer.innerHTML = `<video src="${item.file_url}" controls autoplay style="width:100%; max-height:350px;"></video>`;
+                } else if(item.file_url.match(/\.pdf$/i)) {
+                    mediaContainer.innerHTML = `<a href="${item.file_url}" target="_blank" style="color:white; padding:20px; display:block; text-align:center;"><i class="fa-solid fa-download fa-2x"></i><br>View / Download PDF Document</a>`;
+                } else {
+                    mediaContainer.innerHTML = `<img src="${item.file_url}" alt="${item.title}">`;
+                }
+            } else {
+                mediaContainer.innerHTML = '';
+            }
+            document.getElementById('itemModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('itemModal').style.display = 'none';
+            document.getElementById('modalMediaContainer').innerHTML = '';
+        }
+
+        window.onclick = function(event) {
+            let modal = document.getElementById('itemModal');
+            if (event.target == modal) {
+                closeModal();
+            }
         }
 
         // 
-        loadAllPosts();
+        loadAllSections();
     </script>
 </body>
 </html>
