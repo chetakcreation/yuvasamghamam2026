@@ -7,45 +7,34 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        :root {
-            --primary: #FF9B31;
-            --secondary: #28D1B4;
-            --dark: #1e1e1e;
-            --light: #f8f9fa;
-            --gray: #e9ecef;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        :root { --primary: #FF9B31; --secondary: #28D1B4; --dark: #1e1e1e; --light: #f8f9fa; --gray: #e9ecef; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
         body { background-color: var(--light); color: var(--dark); min-height: 100vh; display: flex; flex-direction: column; }
         
-        /* Splash Animation */
         #splash-screen {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--dark); display: flex; justify-content: center; align-items: center;
-            z-index: 9999; animation: fadeOut 0.8s ease 2s forwards;
+            z-index: 9999; animation: fadeOut 0.8s ease 1.5s forwards;
         }
         #splash-screen h1 { color: var(--primary); font-size: 3rem; animation: pulseText 1.5s infinite; }
         @keyframes pulseText { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.05); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
         @keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
 
-        /* Header */
         header { background: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 100; }
         .logo-area { display: flex; align-items: center; gap: 15px; font-size: 24px; font-weight: bold; color: var(--primary); }
         .search-box { display: flex; align-items: center; background: var(--gray); border-radius: 20px; padding: 5px 15px; }
         .search-box input { border: none; background: transparent; outline: none; padding: 5px; font-size: 14px; }
 
-        /* Main Layout with Sidebar */
         .main-wrapper { display: flex; flex: 1; max-width: 1400px; margin: 0 auto; width: 100%; padding: 20px; gap: 20px; }
         .content-area { flex: 1; }
         .sidebar-right { width: 350px; display: flex; flex-direction: column; gap: 20px; }
 
-        /* Filters & Tabs */
         .filters-bar { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        .filters-bar select, .filters-bar button { padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; font-weight: bold; }
+        .filters-bar select { padding: 10px 15px; border-radius: 6px; border: 1px solid #ccc; background: white; cursor: pointer; font-weight: bold; }
         .tabs-container { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 20px; }
         .tab-btn { padding: 8px 16px; background: var(--gray); border: none; border-radius: 20px; cursor: pointer; white-space: nowrap; font-weight: 600; }
         .tab-btn.active { background: var(--primary); color: white; }
 
-        /* Content Cards Grid */
         .grid-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
         .post-card { background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; }
         .post-card img, .post-card video { width: 100%; height: 180px; object-fit: cover; }
@@ -53,11 +42,9 @@
         .post-title { font-size: 18px; font-weight: bold; margin-bottom: 8px; color: var(--dark); }
         .post-tag { display: inline-block; background: var(--secondary); color: white; padding: 3px 8px; border-radius: 4px; font-size: 11px; margin-top: 8px; width: max-content; }
 
-        /* VSK Embed Box */
         .vsk-embed-box { background: white; border-radius: 10px; overflow: hidden; border: 1px solid #ccc; height: 400px; display: flex; flex-direction: column; }
         .vsk-embed-box iframe { width: 100%; height: 100%; border: none; }
 
-        /* Chat Widget */
         .chat-widget { background: white; border-radius: 10px; border: 1px solid #ccc; display: flex; flex-direction: column; height: 350px; padding: 15px; }
         .chat-messages { flex: 1; overflow-y: auto; border: 1px solid var(--gray); border-radius: 6px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
         .chat-msg { padding: 8px 12px; border-radius: 8px; max-width: 80%; }
@@ -69,7 +56,6 @@
         .chat-input-row button { padding: 8px 12px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
         .file-upload-hint { font-size: 11px; color: #666; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Footer */
         footer { background: var(--dark); color: white; text-align: center; padding: 20px; margin-top: auto; }
         .social-links { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 20px; }
         .social-links a { color: white; transition: color 0.3s; }
@@ -78,16 +64,14 @@
 </head>
 <body>
 
-    <!-- Splash Animation -->
     <div id="splash-screen">
         <h1>YuvaSanghamam 2026</h1>
     </div>
 
-    <!-- Header -->
     <header>
         <div class="logo-area">
             <i class="fa-solid fa-fire"></i>
-            <span id="headerLogoText">YuvaSanghamam 2026</span>
+            <span>YuvaSanghamam 2026</span>
         </div>
         <div class="search-box">
             <i class="fa-solid fa-search" style="color: #777;"></i>
@@ -95,11 +79,8 @@
         </div>
     </header>
 
-    <!-- Main Container -->
     <div class="main-wrapper">
-        <!-- Content Area -->
         <div class="content-area">
-            <!-- Sanghajilla Filter -->
             <div class="filters-bar">
                 <select id="sanghajillaFilter" onchange="filterPosts()">
                     <option value="">എല്ലാ സംഘജില്ലകളും (All Sanghajilla)</option>
@@ -126,7 +107,6 @@
                 </select>
             </div>
 
-            <!-- Tabs -->
             <div class="tabs-container">
                 <button class="tab-btn active" onclick="switchTab('all', this)">എല്ലാം (All)</button>
                 <button class="tab-btn" onclick="switchTab('Photos', this)">Photos</button>
@@ -138,21 +118,17 @@
                 <button class="tab-btn" onclick="switchTab('Social Media Posters', this)">Social Media Posters</button>
             </div>
 
-            <!-- Posts Grid -->
             <div id="postsGrid" class="grid-posts">
                 <p>ലോഡ് ചെയ്യുന്നു...</p>
             </div>
         </div>
 
-        <!-- Right Sidebar (VSK View & Chat) -->
         <div class="sidebar-right">
-            <!-- VSK Website View -->
             <div class="vsk-embed-box">
                 <div style="background: var(--dark); color: white; padding: 8px 12px; font-size: 13px; font-weight: bold;">VSK Keralam Live View</div>
                 <iframe src="https://vskkerala.com/tag/%e0%b4%af%e0%b5%81%e0%b4%b5%e0%b4%b8%e0%b4%82%e0%b4%97%e0%b4%ae%e0%b4%82/"></iframe>
             </div>
 
-            <!-- Chat Widget -->
             <div class="chat-widget">
                 <div style="font-weight: bold; margin-bottom: 8px; font-size: 14px; border-bottom: 1px solid var(--gray); padding-bottom: 5px;">സംശയങ്ങൾ ചോദിക്കാം (Live Chat)</div>
                 <div id="chatMessages" class="chat-messages">
@@ -167,18 +143,17 @@
                         <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
                     </div>
                     <div class="file-upload-hint">
-                        <span>파일/Media (Max 10MB):</span>
-                        <input type="file" id="chatFile" style="font-size: 11px; width: 160px;">
+                        <span>File (Max 10MB):</span>
+                        <input type="file" id="chatFile" style="font-size: 11px; width: 150px;">
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer>
         <p>&copy; 2026 YuvaSanghamam. All Rights Reserved.</p>
-        <div class="social-links" id="socialLinksContainer">
+        <div class="social-links">
             <a href="#" target="_blank"><i class="fa-brands fa-facebook"></i></a>
             <a href="#" target="_blank"><i class="fa-brands fa-instagram"></i></a>
             <a href="#" target="_blank"><i class="fa-brands fa-youtube"></i></a>
@@ -187,31 +162,33 @@
     </footer>
 
     <script>
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA
-        const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA
+        const SUPABASE_URL = 'YOUR_SUPABASE_URL';'YOUR_SUPABASE_KEY';'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA'
+        const SUPABASE_KEY = 'YOUR_SUPABASE_KEY';'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA'
         let supabaseClient = null;
 
         try {
             if (window.supabase) {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
             }
-        } catch(e) { console.error(e); }
+        } catch(e) { console.error("Supabase Init Error:", e); }
 
         let currentTab = 'all';
         let allPosts = [];
 
         async function fetchPosts() {
             if (!supabaseClient) {
-                document.getElementById('postsGrid').innerHTML = '<p style="color:red;">Database not connected. Please update Supabase keys.</p>';
+                document.getElementById('postsGrid').innerHTML = '<p style="color:red;">Database connection error.</p>';
                 return;
             }
-            const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
-            if (error) {
-                console.error(error);
-                return;
+            try {
+                const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
+                if (error) throw error;
+                allPosts = data || [];
+                filterPosts();
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                document.getElementById('postsGrid').innerHTML = '<p style="color:red;">പോസ്റ്റുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.</p>';
             }
-            allPosts = data || [];
-            renderPosts(allPosts);
         }
 
         function switchTab(tabName, btnElement) {
@@ -228,7 +205,7 @@
             let filtered = allPosts.filter(post => {
                 const matchTab = (currentTab === 'all' || post.tab_category === currentTab);
                 const matchJilla = (!selectedJilla || post.sanghajilla === selectedJilla);
-                const matchSearch = (!searchText || post.title.toLowerCase().includes(searchText) || (post.description && post.description.toLowerCase().includes(searchText)));
+                const matchSearch = (!searchText || (post.title && post.title.toLowerCase().includes(searchText)) || (post.description && post.description.toLowerCase().includes(searchText)));
                 return matchTab && matchJilla && matchSearch;
             });
 
@@ -237,7 +214,7 @@
 
         function renderPosts(posts) {
             const grid = document.getElementById('postsGrid');
-            if (posts.length === 0) {
+            if (!posts || posts.length === 0) {
                 grid.innerHTML = '<p style="color:#777; grid-column:1/-1; text-align:center;">പോസ്റ്റുകൾ ഒന്നും ലഭ്യമല്ല.</p>';
                 return;
             }
@@ -291,51 +268,58 @@
             }
 
             let fileUrl = '';
-            if (supabaseClient && file) {
-                const fileName = Date.now() + '_' + file.name;
-                const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-                if (!uploadErr) {
+            try {
+                if (supabaseClient && file) {
+                    const fileName = Date.now() + '_' + file.name;
+                    const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (uploadErr) throw uploadErr;
                     const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
                     fileUrl = pubData.publicUrl;
                 }
-            }
 
-            if (supabaseClient) {
-                await supabaseClient.from('yuva_chats').insert([{
-                    sender_name: name,
-                    message: text,
-                    file_url: fileUrl,
-                    is_admin: false
-                }]);
-            }
+                if (supabaseClient) {
+                    const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
+                        sender_name: name,
+                        message: text,
+                        file_url: fileUrl,
+                        is_admin: false
+                    }]);
+                    if (insErr) throw insErr;
+                }
 
-            alert("സന്ദേശം അയക്കപ്പെട്ടിരിക്കുന്നു! അഡ്മിൻ ഉടൻ മറുപടി നൽകുന്നതാണ്.");
-            document.getElementById('chatText').value = '';
-            fileInput.value = '';
-            loadChatMessages();
+                alert("സന്ദേശം അയക്കപ്പെട്ടിരിക്കുന്നു!");
+                document.getElementById('chatText').value = '';
+                fileInput.value = '';
+                loadChatMessages();
+            } catch (err) {
+                console.error("Chat Error:", err);
+                alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
+            }
         }
 
         async function loadChatMessages() {
             if (!supabaseClient) return;
-            const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: true });
-            if (data) {
-                let chatHtml = `<div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>`;
-                data.forEach(c => {
-                    let msgClass = c.is_admin ? 'admin' : 'user';
-                    let senderLabel = c.is_admin ? '<b>[Admin]: </b>' : `<b>${c.sender_name}: </b>`;
-                    let fileLink = c.file_url ? `<br><a href="${c.file_url}" target="_blank" style="color:blue; text-decoration:underline;">[Attached File]</a>` : '';
-                    chatHtml += `<div class="chat-msg ${msgClass}">${senderLabel} ${c.message || ''} ${fileLink}</div>`;
-                });
-                const container = document.getElementById('chatMessages');
-                container.innerHTML = chatHtml;
-                container.scrollTop = container.scrollHeight;
-            }
+            try {
+                const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: true });
+                if (data) {
+                    let chatHtml = `<div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>`;
+                    data.forEach(c => {
+                        let msgClass = c.is_admin ? 'admin' : 'user';
+                        let senderLabel = c.is_admin ? '<b>[Admin]: </b>' : `<b>${c.sender_name}: </b>`;
+                        let fileLink = c.file_url ? `<br><a href="${c.file_url}" target="_blank" style="color:blue; text-decoration:underline;">[Attached File]</a>` : '';
+                        chatHtml += `<div class="chat-msg ${msgClass}">${senderLabel} ${c.message || ''} ${fileLink}</div>`;
+                    });
+                    const container = document.getElementById('chatMessages');
+                    container.innerHTML = chatHtml;
+                    container.scrollTop = container.scrollHeight;
+                }
+            } catch (e) { console.error("Load Chat Error:", e); }
         }
 
         window.onload = () => {
             fetchPosts();
             loadChatMessages();
-            setInterval(loadChatMessages, 5000); // Live chat sync
+            setInterval(loadChatMessages, 5000);
         };
     </script>
 </body>
