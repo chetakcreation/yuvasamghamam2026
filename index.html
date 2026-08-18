@@ -494,7 +494,7 @@
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
 
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}📂 പോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}`;
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''} പോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nകൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
 
             if (navigator.share) {
                 try {
