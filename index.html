@@ -441,7 +441,6 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
     const message = msgInput ? msgInput.value.trim() : '';
     if (!message) return;
 
-    // യൂസർക്ക് ഒരു യുണീക് ഐഡി സെറ്റ് ചെയ്യുക (ഇത് ഇല്ലെങ്കിൽ മാത്രം)
     let userUniqueId = localStorage.getItem('vsk_user_chat_id');
     if (!userUniqueId) {
         userUniqueId = 'u_' + Math.random().toString(36).substring(2, 9);
@@ -450,8 +449,8 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
 
     try {
         const { error } = await supabaseClient
-            .from('yuva_chats')
-            .insert([{
+        from('yuva_chats')
+        insert([{
                 sender_name: userUniqueId,
                 message: message,
                 is_admin: false
@@ -460,7 +459,7 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
         if (error) throw error;
         
         if (msgInput) msgInput.value = '';
-        loadChatMessages(); // ചാറ്റ് വീണ്ടും ലോഡ് ചെയ്യുന്നു
+        loadChatMessages();
     } catch (e) {
         console.error("Chat Error:", e);
         alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
