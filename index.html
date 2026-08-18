@@ -264,6 +264,17 @@
             loadChatMessages();
             setInterval(loadChatMessages, 5000);
         });
+        function checkUrlForPost() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('post');
+            if (postId && allPosts.length > 0) {
+            const targetPost = allPosts.find(p => String(p.id) === String(postId));
+        if (targetPost) {
+            let postDataStr = encodeURIComponent(JSON.stringify(targetPost));
+            openModal(postDataStr);
+        }
+    }
+}
 
         function checkUserChatState() {
             const nameArea = document.getElementById('namePromptArea');
@@ -329,7 +340,7 @@
                 document.getElementById('postsGrid').innerHTML = '<p style="color:red;">Database connection error.</p>';
                 return;
             try {
-                const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
+    const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
     if (error) throw error;
     allPosts = data || [];
     filterPosts();
@@ -612,18 +623,6 @@
                 console.error("Load Chat Error:", e);
             }
         }
-        function checkUrlForPost() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const postId = urlParams.get('post');
-    if (postId && allPosts.length > 0) {
-        // ആ ഐഡിയുള്ള പോസ്റ്റ് കണ്ടെത്തുന്നു
-        const targetPost = allPosts.find(p => String(p.id) === String(postId));
-        if (targetPost) {
-            let postDataStr = encodeURIComponent(JSON.stringify(targetPost));
-            openModal(postDataStr);
-        }
-    }
-}
     </script>
 </body>
 </html>
