@@ -93,7 +93,7 @@
         .modal-header { padding: 12px 20px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; }
         .modal-body { padding: 20px; overflow-y: auto; text-align: center; flex: 1; }
         .modal-footer { padding: 15px 20px; background: var(--gray); display: flex; justify-content: flex-end; gap: 10px; }
-        .btn-download { background: var(--secondary); color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; }
+        .btn-download { background: var(--secondary); color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: bold; cursor: pointer; border: none; display: inline-flex; align-items: center; gap: 6px; }
         .btn-close { background: #dc3545; color: white; padding: 8px 16px; border-radius: 6px; cursor: pointer; border: none; font-weight: bold; }
 
         footer { background: var(--dark); color: white; text-align: center; padding: 20px; margin-top: auto; }
@@ -242,7 +242,6 @@
     </footer>
 
     <script>
-        // യൂസറുടെ പേര് ലോക്കൽ സ്റ്റോറേജിൽ പരിശോധിക്കുന്നു
         let userName = localStorage.getItem('vsk_user_name');
 
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
@@ -387,6 +386,9 @@
                 }
                 
                 let postDataStr = encodeURIComponent(JSON.stringify(p));
+                let encodedTitle = encodeURIComponent(p.title || 'YuvaSanghamam 2026');
+                let encodedDesc = encodeURIComponent(p.description || '');
+                let encodedFile = encodeURIComponent(p.file_url || '');
 
                 html += `
                     <div class="post-card" onclick='openModal("${postDataStr}")'>
@@ -399,8 +401,8 @@
                             <div>
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
-                                    ${p.file_url ? `<a href="${p.file_url}" target="_blank" download class="btn-sm"><i class="fa-solid fa-download"></i> Download</a>` : ''}
-                                    <button onclick='sharePost("${encodeURIComponent(p.title || 'YuvaSanghamam')}", "${p.file_url || window.location.href}")'><i class="fa-solid fa-share-nodes"></i> Share</button>
+                                    ${p.file_url ? `<button onclick="downloadFile('${p.file_url}')" class="btn-sm"><i class="fa-solid fa-download"></i> Download</button>` : ''}
+                                    <button onclick="sharePost('${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
                         </div>
@@ -408,6 +410,26 @@
                 `;
             });
             grid.innerHTML = html;
+        }
+
+        // ഫയൽ പുതിയ ടാബിൽ തുറക്കാതെ നേരിട്ട് ഡൗൺലോഡ് ചെയ്യിക്കാനുള്ള ഫങ്ഷൻ
+        async function downloadFile(fileUrl) {
+            try {
+                const response = await fetch(fileUrl);
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                let fileName = fileUrl.split('/').pop().split('?')[0] || 'downloaded-file';
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (e) {
+                console.error("Download Error, fallback to window.open", e);
+                window.open(fileUrl, '_blank');
+            }
         }
 
         function openModal(encodedData) {
@@ -430,7 +452,7 @@
 
             let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
             if (p.file_url) {
-                footerHtml = `<a href="${p.file_url}" target="_blank" download class="btn-download"><i class="fa-solid fa-download"></i> Download File</a>` + footerHtml;
+                footerHtml = `<button onclick="downloadFile('${p.file_url}')" class="btn-download"><i class="fa-solid fa-download"></i> Download File</button>` + footerHtml;
             }
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
@@ -442,17 +464,44 @@
             document.getElementById('modalBody').innerHTML = '';
         }
 
-        function sharePost(title, fileUrl) {
-            let shareText = `യുവസംഗമം 2026: ${decodeURIComponent(title)}\nകൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
+        // ഫയലും ടെക്സ്റ്റും ഉൾപ്പെടെ വാട്സാപ്പിലോ സോഷ്യൽ മീഡിയയിലോ ഷെയർ ചെയ്യാനുള്ള ഫങ്ഷൻ
+        async function sharePost(encodedTitle, encodedDesc, encodedFile) {
+            let title = decodeURIComponent(encodedTitle);
+            let desc = decodeURIComponent(encodedDesc);
+            let fileUrl = decodeURIComponent(encodedFile);
+
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}${fileUrl ? '📂 ഫയൽ ലിങ്ക്: ' + fileUrl + '\n\n' : ''}കൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.href}`;
+
             if (navigator.share) {
-                navigator.share({
-                    title: 'YuvaSanghamam 2026',
-                    text: shareText,
-                    url: window.location.href,
-                }).catch(err => console.log('Error sharing:', err));
+                try {
+                    let shareData = {
+                        title: title,
+                        text: shareText,
+                        url: window.location.href
+                    };
+
+                    // ഫയൽ കൂടി ഒപ്പം ഷെയർ ചെയ്യാൻ സാധിക്കുമോ എന്ന് പരിശോധിക്കുന്നു
+                    if (fileUrl && navigator.canShare) {
+                        try {
+                            const response = await fetch(fileUrl);
+                            const blob = await response.blob();
+                            let fileName = fileUrl.split('/').pop().split('?')[0] || 'media';
+                            const file = new File([blob], fileName, { type: blob.type });
+                            if (navigator.canShare({ files: [file] })) {
+                                shareData.files = [file];
+                            }
+                        } catch (err) {
+                            console.log("File fetch for share failed, sharing text/url only", err);
+                        }
+                    }
+
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
             } else {
-                navigator.clipboard.writeText(shareText + "\n" + window.location.href);
-                alert("ലിങ്ക് കോപ്പി ചെയ്തു! നിങ്ങൾക്ക് വാട്സാപ്പിലോ മറ്റോ ഷെയ്ർ ചെയ്യാം.");
+                navigator.clipboard.writeText(shareText);
+                alert("പോസ്റ്റ് വിവരങ്ങൾ കോപ്പി ചെയ്തു! നിങ്ങൾക്ക് വാട്സാപ്പിലോ മറ്റോ പേസ്റ്റ് ചെയ്ത് ഷെയർ ചെയ്യാം.");
             }
         }
 
@@ -512,7 +561,6 @@
             }
         }
 
-        // ചാറ്റ് മെസ്സേജിലെ ലിങ്കുകളെ ചിത്രങ്ങളോ ഡൗൺലോഡ് ഫയലുകളോ ആയി പാഴ്സ് ചെയ്ത് മാറ്റുന്ന ഹെൽപ്പർ ഫങ്ഷൻ
         function formatChatMessage(rawMessage) {
             let contentHtml = rawMessage || '';
             if (contentHtml.includes('[Image:')) {
@@ -525,7 +573,7 @@
                 let textPart = parts[0];
                 let fileUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
                 let fileName = fileUrl ? fileUrl.split('/').pop().split('_').pop() : 'Download File';
-                contentHtml = `${textPart}<br><a href="${fileUrl}" target="_blank" download style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; text-decoration: none; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</a>`;
+                contentHtml = `${textPart}<br><button onclick="downloadFile('${fileUrl}')" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</button>`;
             }
             return contentHtml;
         }
