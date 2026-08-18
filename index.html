@@ -264,17 +264,6 @@
             loadChatMessages();
             setInterval(loadChatMessages, 5000);
         });
-        function checkUrlForPost() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const postId = urlParams.get('post');
-            if (postId && allPosts.length > 0) {
-            const targetPost = allPosts.find(p => String(p.id) === String(postId));
-        if (targetPost) {
-            let postDataStr = encodeURIComponent(JSON.stringify(targetPost));
-            openModal(postDataStr);
-        }
-    }
-}
 
         function checkUserChatState() {
             const nameArea = document.getElementById('namePromptArea');
@@ -339,11 +328,12 @@
             if (!supabaseClient) {
                 document.getElementById('postsGrid').innerHTML = '<p style="color:red;">Database connection error.</p>';
                 return;
+            }
             try {
-    const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
-    if (error) throw error;
-    allPosts = data || [];
-    filterPosts();
+                const { data, error } = await supabaseClient.from('yuva_posts').select('*').order('id', { ascending: false });
+                if (error) throw error;
+                allPosts = data || [];
+                filterPosts();
             } catch (err) {
                 console.error("Fetch Error:", err);
                 document.getElementById('postsGrid').innerHTML = '<p style="color:red;">പോസ്റ്റുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.</p>';
@@ -412,7 +402,8 @@
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
                                     ${p.file_url ? `<button onclick="downloadFile('${p.file_url}')" class="btn-sm"><i class="fa-solid fa-download"></i> Download</button>` : ''}
-<button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>                                </div>
+                                    <button onclick="sharePost('${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                                </div>
                             </div>
                         </div>
                     </div>
