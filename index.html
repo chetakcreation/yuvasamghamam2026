@@ -470,7 +470,7 @@
             let desc = decodeURIComponent(encodedDesc);
             let fileUrl = decodeURIComponent(encodedFile);
 
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}${fileUrl ? '📂 ഫയൽ ലിങ്ക്: ' + fileUrl + '\n\n' : ''}കൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.href}`;
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}${fileUrl ? '📂 ഫയൽ ലിങ്ക്: ' + fileUrl + '\n' : ''}കൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.href}`;
 
             if (navigator.share) {
                 try {
