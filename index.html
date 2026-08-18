@@ -235,6 +235,12 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
     </footer>
 
     <script>
+    let userUniqueId = localStorage.getItem('vsk_user_chat_id');
+    if (!userUniqueId) {
+
+    userUniqueId = 'u_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('vsk_user_chat_id', userUniqueId);
+}
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
         let supabaseClient = null;
@@ -472,9 +478,8 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
 
                 if (supabaseClient) {
                     const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
-                        sender_name: name,
-                        message: text,
-                        file_url: fileUrl,
+                        sender_name: userUniqueId,
+                        message: message,
                         is_admin: false
                     }]);
                     if (insErr) throw insErr;
@@ -492,7 +497,11 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
         async function loadChatMessages() {
             if (!supabaseClient) return;
             try {
-                const { data } = await supabaseClient.from('yuva_chats').select('*').order('id', { ascending: true });
+                const { data, error } = await supabaseClient
+                from('yuva_chats')
+                select('*')
+                or(`sender_name.eq.${userUniqueId},is_admin.eq.true`)
+                order('id', { ascending: true });
                 if (data) {
                     let chatHtml = `<div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>`;
                     data.forEach(c => {
