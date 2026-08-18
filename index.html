@@ -245,7 +245,7 @@
             <a id="footerFb" href="#" target="_blank"><i class="fa-brands fa-facebook"></i></a>
             <a id="footerInsta" href="#" target="_blank"><i class="fa-brands fa-instagram"></i></a>
             <a id="footerYt" href="#" target="_blank"><i class="fa-brands fa-youtube"></i></a>
-            <a id="footerX" href="#" target="_blank"><i class="fa-brands fa-x"></i></a>
+            <a id="footerX" href="#" target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
             <a id="footerWa" href="#" target="_blank"><i class="fa-brands fa-whatsapp"></i></a>
         </div>
     </footer>
@@ -301,6 +301,7 @@
             const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
             const logoContainer = document.getElementById('logoContainer');
             
+            // ലോഗോയും ടൈറ്റിലും അപ്ഡേറ്റ് ചെയ്യുന്ന ഭാഗം
             if (saved.logo_url) {
                 logoContainer.innerHTML = `<img src="${saved.logo_url}" alt="Logo">`;
             } else {
@@ -315,10 +316,19 @@
             }
 
             if (saved.fb) document.getElementById('footerFb').href = saved.fb;
+            else document.getElementById('footerFb').style.display = 'none';
+
             if (saved.insta) document.getElementById('footerInsta').href = saved.insta;
+            else document.getElementById('footerInsta').style.display = 'none';
+
             if (saved.yt) document.getElementById('footerYt').href = saved.yt;
+            else document.getElementById('footerYt').style.display = 'none';
+
             if (saved.x) document.getElementById('footerX').href = saved.x;
+            else document.getElementById('footerX').style.display = 'none';
+
             if (saved.wa) document.getElementById('footerWa').href = saved.wa;
+            else document.getElementById('footerWa').style.display = 'none';
         }
 
         function toggleChat() {
@@ -590,7 +600,7 @@
                 let imgUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
                 contentHtml = `${textPart}<br><img src="${imgUrl}" style="max-width: 180px; border-radius: 6px; margin-top: 5px; display: block; cursor: pointer;" onclick="window.open('${imgUrl}', '_blank')">`;
             } else if (contentHtml.includes('[File:')) {
-                let parts = contentHtml.split('[File:');
+                let, parts = contentHtml.split('[File:');
                 let textPart = parts[0];
                 let fileUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
                 let fileName = fileUrl ? fileUrl.split('/').pop().split('_').pop() : 'Download File';
