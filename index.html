@@ -334,9 +334,24 @@
                 if (error) throw error;
                 allPosts = data || [];
                 filterPosts();
+                
+                // URL-ൽ post ID ഉണ്ടോ എന്ന് നോക്കി മോഡൽ ഓപ്പൺ ചെയ്യുന്നു
+                checkUrlForPost();
             } catch (err) {
                 console.error("Fetch Error:", err);
                 document.getElementById('postsGrid').innerHTML = '<p style="color:red;">പോസ്റ്റുകൾ ലോഡ് ചെയ്യുന്നതിൽ പരാജയപ്പെട്ടു.</p>';
+            }
+        }
+
+        function checkUrlForPost() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const postId = urlParams.get('post');
+            if (postId && allPosts.length > 0) {
+                const targetPost = allPosts.find(p => String(p.id) === String(postId));
+                if (targetPost) {
+                    let postDataStr = encodeURIComponent(JSON.stringify(targetPost));
+                    openModal(postDataStr);
+                }
             }
         }
 
@@ -402,7 +417,7 @@
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
                                     ${p.file_url ? `<button onclick="downloadFile('${p.file_url}')" class="btn-sm"><i class="fa-solid fa-download"></i> Download</button>` : ''}
-                                    <button onclick="sharePost('${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                                    <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
                         </div>
@@ -462,50 +477,55 @@
         function closeModal() {
             document.getElementById('mediaModal').style.display = 'none';
             document.getElementById('modalBody').innerHTML = '';
-        }
-
-        // ഫയലും ടെക്സ്റ്റും ഉൾപ്പെടെ വാട്സാപ്പിലോ സോഷ്യൽ മീഡിയയിലോ ഷെയർ ചെയ്യാനുള്ള ഫങ്ഷൻ
-        async function sharePost(postId, encodedTitle, encodedDesc, encodedFile) {
-    let title = decodeURIComponent(encodedTitle);
-    let desc = decodeURIComponent(encodedDesc);
-    let fileUrl = decodeURIComponent(encodedFile);
-
-    // സൈറ്റിലെ ആ പ്രത്യേക പോസ്റ്റിന്റെ മാത്രം ലിങ്ക് ഉണ്ടാക്കുന്നു (ഉദാഹരണത്തിന്: mysite.com/?post=5)
-    let baseUrl = window.location.origin + window.location.pathname;
-    let postSpecificLink = `${baseUrl}?post=${postId}`;
-
-    let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}📂 പോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}`;
-
-    if (navigator.share) {
-        try {
-            let shareData = {
-                title: title,
-                text: shareText
-            };
-
-            if (fileUrl && navigator.canShare) {
-                try {
-                    const response = await fetch(fileUrl);
-                    const blob = await response.blob();
-                    let fileName = fileUrl.split('/').pop().split('?')[0] || 'media';
-                    const file = new File([blob], fileName, { type: blob.type });
-                    if (navigator.canShare({ files: [file] })) {
-                        shareData.files = [file];
-                    }
-                } catch (err) {
-                    console.log("File fetch for share failed, sharing text only", err);
-                }
+            
+            // മോഡൽ ക്ലോസ് ചെയ്യുമ്പോൾ URL-ൽ നിന്നും ?post=xyz ഒഴിവാക്കാൻ
+            if (window.history.replaceState) {
+                const cleanUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+                window.history.replaceState({path: cleanUrl}, '', cleanUrl);
             }
-
-            await navigator.share(shareData);
-        } catch (err) {
-            console.log('Error sharing:', err);
         }
-    } else {
-        navigator.clipboard.writeText(shareText);
-        alert("പോസ്റ്റ് വിവരങ്ങൾ കോപ്പി ചെയ്തു!");
-    }
-}
+
+        // ഫയലും ടെക്സ്റ്റും കൂടാതെ സൈറ്റിലെ ആ പ്രത്യേക പോസ്റ്റ് ലിങ്ക് മാത്രം ഉൾപ്പെടുത്തി ഷെയർ ചെയ്യാനുള്ള ഫങ്ഷൻ
+        async function sharePost(postId, encodedTitle, encodedDesc, encodedFile) {
+            let title = decodeURIComponent(encodedTitle);
+            let desc = decodeURIComponent(encodedDesc);
+            let fileUrl = decodeURIComponent(encodedFile);
+
+            let baseUrl = window.location.origin + window.location.pathname;
+            let postSpecificLink = `${baseUrl}?post=${postId}`;
+
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}📂 പോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}`;
+
+            if (navigator.share) {
+                try {
+                    let shareData = {
+                        title: title,
+                        text: shareText
+                    };
+
+                    if (fileUrl && navigator.canShare) {
+                        try {
+                            const response = await fetch(fileUrl);
+                            const blob = await response.blob();
+                            let fileName = fileUrl.split('/').pop().split('?')[0] || 'media';
+                            const file = new File([blob], fileName, { type: blob.type });
+                            if (navigator.canShare({ files: [file] })) {
+                                shareData.files = [file];
+                            }
+                        } catch (err) {
+                            console.log("File fetch for share failed, sharing text only", err);
+                        }
+                    }
+
+                    await navigator.share(shareData);
+                } catch (err) {
+                    console.log('Error sharing:', err);
+                }
+            } else {
+                navigator.clipboard.writeText(shareText);
+                alert("പോസ്റ്റ് വിവരങ്ങൾ കോപ്പി ചെയ്തു!");
+            }
+        }
 
         async function sendChatMessage() {
             if (!userName) {
