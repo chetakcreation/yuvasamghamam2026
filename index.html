@@ -466,11 +466,14 @@
 
         // ഫയലും ടെക്സ്റ്റും ഉൾപ്പെടെ വാട്സാപ്പിലോ സോഷ്യൽ മീഡിയയിലോ ഷെയർ ചെയ്യാനുള്ള ഫങ്ഷൻ
         async function sharePost(encodedTitle, encodedDesc, encodedFile) {
-            let title = decodeURIComponent(encodedTitle);
-            let desc = decodeURIComponent(encodedDesc);
-            let fileUrl = decodeURIComponent(encodedFile);
+    let title = decodeURIComponent(encodedTitle);
+    let desc = decodeURIComponent(encodedDesc);
+    let fileUrl = decodeURIComponent(encodedFile);
 
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}കൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
+    // Supabase ലിങ്കിന് പകരം നമ്മുടെ സൈറ്റിന്റെ ലിങ്ക് ഫയൽ ലിങ്കായി നൽകുന്നു
+    let siteFileLink = window.location.href; 
+
+    let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}📂 ഫയൽ ലിങ്ക്:\n${siteFileLink}\n\nകൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
 
     if (navigator.share) {
         try {
@@ -479,7 +482,7 @@
                 text: shareText
             };
 
-            // ഫയൽ കൂടി ഒപ്പം ഷെയർ ചെയ്യാൻ സാധിക്കുമെങ്കിൽ മാത്രം ഫയൽ ചേർക്കുന്നു (ലിങ്ക് അല്ല, ഫയൽ തന്നെയായി പോകും)
+            // ബ്രൗസർ ഫയൽ ഷെയറിങ് സപ്പോർട്ട് ചെയ്യുന്നുണ്ടെങ്കിൽ ഒറിജിനൽ ഫയൽ തന്നെ ഷെയർ ചെയ്യാം
             if (fileUrl && navigator.canShare) {
                 try {
                     const response = await fetch(fileUrl);
