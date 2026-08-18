@@ -437,32 +437,53 @@ body, h1, h2, h3, h4, h5, h6, input, textarea, select, button {
         }
 
         async function sendChatMessage() {
-    const msgInput = document.getElementById('userMsgInput');
-    const message = msgInput ? msgInput.value.trim() : '';
-    if (!message) return;
+    if (!supabaseClient) {
+        alert("Database connection not found!");
+        return;
+    }
 
+    const msgInput = document.getElementById('chatText');
+    const message = msgInput ? msgInput.value.trim() : '';
+
+    if (!message) {
+        alert("ദയവായി ഒരു സന്ദേശം എഴുതുക.");
+        return;
+    }
+
+    // ലോക്കൽ സ്റ്റോറേജിൽ നിന്ന് യൂസർ ഐഡി എടുക്കുന്നു
     let userUniqueId = localStorage.getItem('vsk_user_chat_id');
     if (!userUniqueId) {
-        userUniqueId = 'u_' + Math.random().toString(36).substring(2, 9);
+        userUniqueId = 'u_' + Math.random().toString(36.substring(2, 11));
         localStorage.setItem('vsk_user_chat_id', userUniqueId);
     }
 
     try {
-        const { error } = await supabaseClient
-        from('yuva_chats')
-        insert([{
-                sender_name: userUniqueId,
-                message: message,
-                is_admin: false
-            }]);
+        const { data, error } = await supabaseClient
+            .from('yuva_chats')
+            .insert([
+                {
+                    sender_name: userUniqueId,
+                    message: message,
+                    is_admin: false,
+                    file_url: null
+                }
+            ]);
 
-        if (error) throw error;
+        if (error) {
+            console.error("Supabase Insert Error:", error);
+            alert("മെസ്സേജ് അയക്കുന്നതിൽ പരാജയപ്പെട്ടു: " + error.message);
+            return;
+        }
+
+        // മെസ്സേജ് ബോക്സ് ക്ലിയർ ചെയ്ത് ചാറ്റ് വീണ്ടും ലോഡ് ചെയ്യുന്നു
         if (msgInput) msgInput.value = '';
-        loadChatMessages();
-    } catch (e) {
-        console.error("Chat Error:", e);
-        alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
+        if (typeof loadChatMessages === 'function') {
+            loadChatMessages();
+        }
+    } catch (err) {
+        console.error("Catch Error:", err);
     }
+}
 
             if (file && file.size > 10 * 1024 * 1024) {
                 alert("ഫയലിന്റെ സൈസ് 10MB-ൽ താഴെയായിരിക്കണം!");
