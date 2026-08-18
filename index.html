@@ -470,40 +470,39 @@
             let desc = decodeURIComponent(encodedDesc);
             let fileUrl = decodeURIComponent(encodedFile);
 
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}${fileUrl ? '📂 ഫയൽ ലിങ്ക്: ' + fileUrl + '\n\n' : ''}കൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}കൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
 
-            if (navigator.share) {
+    if (navigator.share) {
+        try {
+            let shareData = {
+                title: title,
+                text: shareText
+            };
+
+            // ഫയൽ കൂടി ഒപ്പം ഷെയർ ചെയ്യാൻ സാധിക്കുമെങ്കിൽ മാത്രം ഫയൽ ചേർക്കുന്നു (ലിങ്ക് അല്ല, ഫയൽ തന്നെയായി പോകും)
+            if (fileUrl && navigator.canShare) {
                 try {
-                    let shareData = {
-                        title: title,
-                        text: shareText,
-                        url: window.location.href
-                    };
-
-                    // ഫയൽ കൂടി ഒപ്പം ഷെയർ ചെയ്യാൻ സാധിക്കുമോ എന്ന് പരിശോധിക്കുന്നു
-                    if (fileUrl && navigator.canShare) {
-                        try {
-                            const response = await fetch(fileUrl);
-                            const blob = await response.blob();
-                            let fileName = fileUrl.split('/').pop().split('?')[0] || 'media';
-                            const file = new File([blob], fileName, { type: blob.type });
-                            if (navigator.canShare({ files: [file] })) {
-                                shareData.files = [file];
-                            }
-                        } catch (err) {
-                            console.log("File fetch for share failed, sharing text/url only", err);
-                        }
+                    const response = await fetch(fileUrl);
+                    const blob = await response.blob();
+                    let fileName = fileUrl.split('/').pop().split('?')[0] || 'media';
+                    const file = new File([blob], fileName, { type: blob.type });
+                    if (navigator.canShare({ files: [file] })) {
+                        shareData.files = [file];
                     }
-
-                    await navigator.share(shareData);
                 } catch (err) {
-                    console.log('Error sharing:', err);
+                    console.log("File fetch for share failed, sharing text only", err);
                 }
-            } else {
-                navigator.clipboard.writeText(shareText);
-                alert("പോസ്റ്റ് വിവരങ്ങൾ കോപ്പി ചെയ്തു! നിങ്ങൾക്ക് വാട്സാപ്പിലോ മറ്റോ പേസ്റ്റ് ചെയ്ത് ഷെയർ ചെയ്യാം.");
             }
+
+            await navigator.share(shareData);
+        } catch (err) {
+            console.log('Error sharing:', err);
         }
+    } else {
+        navigator.clipboard.writeText(shareText);
+        alert("പോസ്റ്റ് വിവരങ്ങൾ കോപ്പി ചെയ്തു! നിങ്ങൾക്ക് വാട്സാപ്പിലോ മറ്റോ പേസ്റ്റ് ചെയ്ത് ഷെയർ ചെയ്യാം.");
+    }
+}
 
         async function sendChatMessage() {
             if (!userName) {
