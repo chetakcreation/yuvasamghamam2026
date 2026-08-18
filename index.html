@@ -54,7 +54,6 @@
         .vsk-embed-box { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; height: 450px; display: flex; flex-direction: column; }
         .vsk-embed-box iframe { width: 100%; height: 100%; border: none; }
 
-        /* Floating Chat Widget & Button */
         .chat-fab {
             position: fixed; bottom: 20px; right: 20px;
             width: 55px; height: 55px; background: var(--primary);
@@ -89,7 +88,6 @@
         .chat-input-row button { padding: 7px 10px; background: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; }
         .file-upload-hint { font-size: 11px; color: #666; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Modal for View & Download */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 2000; padding: 15px; }
         .modal-content { background: white; max-width: 750px; width: 100%; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; }
         .modal-header { padding: 10px 15px; background: var(--dark); color: white; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
@@ -103,7 +101,6 @@
         .social-links a { color: white; transition: color 0.3s; }
         .social-links a:hover { color: var(--primary); }
 
-        /* Mobile Responsive Extra Adjustments */
         @media(max-width: 900px) {
             .main-wrapper { flex-direction: column; padding: 10px; }
             .sidebar-right { width: 100%; }
@@ -192,7 +189,6 @@
         </div>
     </div>
 
-    <!-- Floating Chat Button & Popup Box -->
     <div class="chat-fab" onclick="toggleChat()">
         <i class="fa-solid fa-comments"></i>
     </div>
@@ -206,7 +202,6 @@
             <div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കണം?</div>
         </div>
         
-        <!-- Name Input Section (Shows only if name is not set) -->
         <div class="chat-input-area" id="namePromptArea" style="display: none; background: #fff3cd; border-top: 1px solid #ffeeba;">
             <div class="chat-input-row">
                 <input type="text" id="userNameInput" placeholder="ചാറ്റ് ചെയ്യാൻ നിങ്ങളുടെ പേര് നൽകുക...">
@@ -214,7 +209,6 @@
             </div>
         </div>
 
-        <!-- Main Message Input Area -->
         <div class="chat-input-area" id="msgInputArea">
             <div class="chat-input-row">
                 <input type="text" id="chatText" placeholder="സന്ദേശം എഴുതൂ..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
@@ -227,7 +221,6 @@
         </div>
     </div>
 
-    <!-- Modal for View & Download -->
     <div id="mediaModal" class="modal-overlay">
         <div class="modal-content">
             <div class="modal-header">
@@ -297,8 +290,22 @@
             checkUserChatState();
         }
 
-        function loadSiteSettings() {
-            const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+        async function loadSiteSettings() {
+            let saved = {};
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('site_settings').select('*').eq('id', 1).single();
+                    if (data && !error) {
+                        saved = data;
+                        localStorage.setItem('vsk_site_settings', JSON.stringify(data));
+                    }
+                } catch(err) {
+                    saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+                }
+            } else {
+                saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+            }
+
             const logoContainer = document.getElementById('logoContainer');
             
             if (saved.logo_url) {
