@@ -428,46 +428,49 @@
         }
 
         async function sendChatMessage() {
-            const msgInput = document.getElementById('chatText');
-            const fileInput = document.getElementById('chatFile');
-            const message = msgInput ? msgInput.value.trim() : '';
-            const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
+    const msgInput = document.getElementById('chatText');
+    const fileInput = document.getElementById('chatFile');
+    const message = msgInput ? msgInput.value.trim() : '';
+    const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
 
-            if (!message && !file) return;
+    if (!message && !file) return;
 
-            if (file && file.size > 10 * 1024 * 1024) {
-                alert("ഫയലിന്റെ സൈസ് 10MB-ൽ താഴെയായിരിക്കണം!");
-                return;
-            }
+    if (file && file.size > 10 * 1024 * 1024) {
+        alert("ഫയലിന്റെ സൈസ് 10MB-ൽ താഴെയായിരിക്കണം!");
+        return;
+    }
 
-            let fileUrl = '';
-            try {
-                if (supabaseClient && file) {
-                    const fileName = Date.now() + '_' + file.name;
-                    const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-                    if (uploadErr) throw uploadErr;
-                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
-                    fileUrl = pubData.publicUrl;
-                }
-
-                if (supabaseClient) {
-                    const finalMessage = fileUrl ? `${message}\n[File: ${fileUrl}]` : message;
-                    const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
-                        sender_name: userUniqueId,
-                        message: finalMessage,
-                        is_admin: false
-                    }]);
-                    if (insErr) throw insErr;
-                }
-
-                if (msgInput) msgInput.value = '';
-                if (fileInput) fileInput.value = '';
-                loadChatMessages();
-            } catch (err) {
-                console.error("Chat Error:", err);
-                alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
-            }
+    let fileUrl = '';
+    try {
+        if (supabaseClient && file) {
+            const fileName = Date.now() + '_' + file.name;
+            const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+            if (uploadErr) throw uploadErr;
+            const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+            fileUrl = pubData.publicUrl;
         }
+
+        if (supabaseClient) {
+            const finalMessage = fileUrl ? `${message}\n[File: ${fileUrl}]` : message;
+            
+            // ഇവിടെ recipient_id കൂടി നൽകുന്നതുകൊണ്ട് അഡ്മിൻ ഡാഷ്ബോർഡിൽ മെസ്സേജ് കൃത്യമായി വരും
+            const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
+                sender_name: userUniqueId,
+                recipient_id: userUniqueId, 
+                message: finalMessage,
+                is_admin: false
+            }]);
+            if (insErr) throw insErr;
+        }
+
+        if (msgInput) msgInput.value = '';
+        if (fileInput) fileInput.value = '';
+        loadChatMessages();
+    } catch (err) {
+        console.error("Chat Error:", err);
+        alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
+    }
+}
 
         async function loadChatMessages() {
             if (!supabaseClient) return;
