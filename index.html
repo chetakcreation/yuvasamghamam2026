@@ -64,7 +64,7 @@
 
         .chat-popup {
             position: fixed; bottom: 95px; right: 25px;
-            width: 350px; height: 420px; background: white;
+            width: 350px; height: 440px; background: white;
             border-radius: 12px; box-shadow: 0 5px 25px rgba(0,0,0,0.2);
             display: none; flex-direction: column; z-index: 1000; overflow: hidden;
             border: 1px solid #ccc;
@@ -196,10 +196,17 @@
         <div id="userChatMessagesBox" class="chat-messages">
             <div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>
         </div>
-        <div class="chat-input-area">
-            <div class="chat-input-row" id="nameInputRow" style="display: none;">
-                <input type="text" id="chatName" placeholder="നിങ്ങളുടെ പേര് (ആദ്യം മാത്രം)...">
+        
+        <!-- Name Input Section (Shows only if name is not set) -->
+        <div class="chat-input-area" id="namePromptArea" style="display: none; background: #fff3cd; border-top: 1px solid #ffeeba;">
+            <div class="chat-input-row">
+                <input type="text" id="userNameInput" placeholder="ചാറ്റ് ചെയ്യാൻ നിങ്ങളുടെ പേര് നൽകുക...">
+                <button onclick="saveUserName()" style="background: var(--secondary);">സേവ്</button>
             </div>
+        </div>
+
+        <!-- Main Message Input Area -->
+        <div class="chat-input-area" id="msgInputArea">
             <div class="chat-input-row">
                 <input type="text" id="chatText" placeholder="സന്ദേശം എഴുതൂ..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
                 <button onclick="sendChatMessage()"><i class="fa-solid fa-paper-plane"></i></button>
@@ -235,11 +242,8 @@
     </footer>
 
     <script>
-        let userUniqueId = localStorage.getItem('vsk_user_chat_id');
-        if (!userUniqueId) {
-            userUniqueId = 'u_' + Math.random().toString(36).substr(2, 9);
-            localStorage.setItem('vsk_user_chat_id', userUniqueId);
-        }
+        // യൂസറുടെ പേര് ലോക്കൽ സ്റ്റോറേജിൽ പരിശോധിക്കുന്നു
+        let userName = localStorage.getItem('vsk_user_name');
 
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
@@ -257,9 +261,33 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadSiteSettings();
             fetchPosts();
+            checkUserChatState();
             loadChatMessages();
             setInterval(loadChatMessages, 5000);
         });
+
+        function checkUserChatState() {
+            const nameArea = document.getElementById('namePromptArea');
+            const msgArea = document.getElementById('msgInputArea');
+            if (!userName) {
+                nameArea.style.display = 'flex';
+                msgArea.style.display = 'none';
+            } else {
+                nameArea.style.display = 'none';
+                msgArea.style.display = 'flex';
+            }
+        }
+
+        function saveUserName() {
+            const inputVal = document.getElementById('userNameInput').value.trim();
+            if (!inputVal) {
+                alert("ദയവായി നിങ്ങളുടെ പേര് നൽകുക!");
+                return;
+            }
+            userName = inputVal;
+            localStorage.setItem('vsk_user_name', userName);
+            checkUserChatState();
+        }
 
         function loadSiteSettings() {
             const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
@@ -291,6 +319,7 @@
                 popup.style.display = 'none';
             } else {
                 popup.style.display = 'flex';
+                checkUserChatState();
                 const container = document.getElementById('userChatMessagesBox');
                 if (container) container.scrollTop = container.scrollHeight;
             }
@@ -428,60 +457,63 @@
         }
 
         async function sendChatMessage() {
-    const msgInput = document.getElementById('chatText');
-    const fileInput = document.getElementById('chatFile');
-    const message = msgInput ? msgInput.value.trim() : '';
-    const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
+            if (!userName) {
+                alert("ദയവായി ആദ്യം നിങ്ങളുടെ പേര് നൽകുക!");
+                return;
+            }
 
-    if (!message && !file) return;
+            const msgInput = document.getElementById('chatText');
+            const fileInput = document.getElementById('chatFile');
+            const message = msgInput ? msgInput.value.trim() : '';
+            const file = fileInput && fileInput.files.length > 0 ? fileInput.files[0] : null;
 
-    if (file && file.size > 10 * 1024 * 1024) {
-        alert("ഫയലിന്റെ സൈസ് 10MB-ൽ താഴെയായിരിക്കണം!");
-        return;
-    }
+            if (!message && !file) return;
 
-    let fileUrl = '';
-    try {
-        if (supabaseClient && file) {
-            const fileName = Date.now() + '_' + file.name;
-            const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-            if (uploadErr) throw uploadErr;
-            const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
-            fileUrl = pubData.publicUrl;
+            if (file && file.size > 10 * 1024 * 1024) {
+                alert("ഫയലിന്റെ സൈസ് 10MB-ൽ താഴെയായിരിക്കണം!");
+                return;
+            }
+
+            let fileUrl = '';
+            try {
+                if (supabaseClient && file) {
+                    const fileName = Date.now() + '_' + file.name;
+                    const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (uploadErr) throw uploadErr;
+                    const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
+                    fileUrl = pubData.publicUrl;
+                }
+
+                if (supabaseClient) {
+                    const finalMessage = fileUrl ? `${message}\n[File: ${fileUrl}]` : message;
+                    
+                    // sender_name ഉം recipient_id ഉം യൂസറുടെ പേര് തന്നെ നൽകുന്നു
+                    const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
+                        sender_name: userName,
+                        recipient_id: userName, 
+                        message: finalMessage,
+                        is_admin: false
+                    }]);
+                    if (insErr) throw insErr;
+                }
+
+                if (msgInput) msgInput.value = '';
+                if (fileInput) fileInput.value = '';
+                loadChatMessages();
+            } catch (err) {
+                console.error("Chat Error:", err);
+                alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
+            }
         }
-
-        if (supabaseClient) {
-            const finalMessage = fileUrl ? `${message}\n[File: ${fileUrl}]` : message;
-            
-            // ഇവിടെ recipient_id കൂടി നൽകുന്നതുകൊണ്ട് അഡ്മിൻ ഡാഷ്ബോർഡിൽ മെസ്സേജ് കൃത്യമായി വരും
-            const { error: insErr } = await supabaseClient.from('yuva_chats').insert([{
-                sender_name: userUniqueId,
-                recipient_id: userUniqueId, 
-                message: finalMessage,
-                is_admin: false
-            }]);
-            if (insErr) throw insErr;
-        }
-
-        if (msgInput) msgInput.value = '';
-        if (fileInput) fileInput.value = '';
-        loadChatMessages();
-    } catch (err) {
-        console.error("Chat Error:", err);
-        alert("സന്ദേശം അയക്കുന്നതിൽ പരാജയപ്പെട്ടു.");
-    }
-}
 
         async function loadChatMessages() {
-            if (!supabaseClient) return;
-
-            if (!userUniqueId) return;
+            if (!supabaseClient || !userName) return;
 
             try {
                 const { data, error } = await supabaseClient
                     .from('yuva_chats')
                     .select('*')
-                    .or(`sender_name.eq.${userUniqueId},is_admin.eq.true`)
+                    .or(`sender_name.eq.${userName},recipient_id.eq.${userName}`)
                     .order('id', { ascending: true });
 
                 if (error) throw error;
@@ -489,18 +521,17 @@
                 let chatBox = document.getElementById('userChatMessagesBox');
                 if (!chatBox) return;
 
-                let html = '';
+                let html = `<div class="chat-msg admin">നമസ്കാരം ${userName}! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കാനാകും?</div>`;
+                
                 if (data && data.length > 0) {
                     data.forEach(m => {
-                        let isMyMsg = m.sender_name === userUniqueId;
+                        let isMyMsg = m.sender_name === userName;
                         let bubbleClass = m.is_admin ? 'admin' : (isMyMsg ? 'user' : '');
                         
                         if (bubbleClass) {
                             html += `<div class="chat-msg ${bubbleClass}">${m.message}</div>`;
                         }
                     });
-                } else {
-                    html = '<p style="color:#777; text-align:center; font-size:13px;">മെസ്സേജുകൾ ഒന്നുമില്ല.</p>';
                 }
                 chatBox.innerHTML = html;
                 chatBox.scrollTop = chatBox.scrollHeight;
