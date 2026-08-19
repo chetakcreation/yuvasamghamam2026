@@ -415,7 +415,6 @@
                 let firstFileUrl = '';
 
                 if (p.file_url) {
-                    // ഒന്നിലധികം ഫയലുകൾ കോമ വെച്ച് സ്പ്ലിറ്റ് ചെയ്യുന്നു
                     let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
                     if (files.length > 0) {
                         firstFileUrl = files[0];
@@ -478,31 +477,40 @@
             document.getElementById('modalTitle').innerText = p.title || 'Media Preview';
             
             let bodyHtml = '';
+            let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
+
             if (p.file_url) {
                 let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
+                
+                // ഓരോ ഫയലിനും വെവ്വേറെ വ്യൂവും താഴെ അതത് ഡൗൺലോഡ് ബട്ടണും നിർമ്മിക്കുന്നു
                 files.forEach((fUrl, index) => {
+                    let fileName = fUrl.split('/').pop().split('?')[0] || `File_${index+1}`;
+                    
                     if (fUrl.match(/\.(mp4|webm|ogg)$/i)) {
-                        bodyHtml += `<div style="margin-bottom:10px;"><video controls src="${fUrl}" style="width:100%; max-height:300px; border-radius:6px;"></video></div>`;
+                        bodyHtml += `
+                            <div style="margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:15px;">
+                                <video controls src="${fUrl}" style="width:100%; max-height:280px; border-radius:6px;"></video>
+                                <div style="margin-top:8px;">
+                                    <button onclick="downloadFile('${fUrl}')" class="btn-download"><i class="fa-solid fa-download"></i> Download File ${index + 1}</button>
+                                </div>
+                            </div>`;
                     } else {
-                        bodyHtml += `<div style="margin-bottom:10px;"><img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:300px; border-radius:6px;"></div>`;
+                        bodyHtml += `
+                            <div style="margin-bottom:20px; border-bottom:1px solid #ddd; padding-bottom:15px;">
+                                <img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:280px; border-radius:6px;">
+                                <div style="margin-top:8px;">
+                                    <button onclick="downloadFile('${fUrl}')" class="btn-download"><i class="fa-solid fa-download"></i> Download File ${index + 1}</button>
+                                </div>
+                            </div>`;
                     }
                 });
             }
+
             bodyHtml += `<p style="margin-top:12px; font-size:15px; font-weight:bold;">${p.title || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:13px; color:#555;">${p.description || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:12px; color:#777;"><b>സംഘജില്ല:</b> ${p.sanghajilla || 'General'} | <b>വിഭാഗം:</b> ${p.tab_category || ''}</p>`;
             
             document.getElementById('modalBody').innerHTML = bodyHtml;
-
-            let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
-            if (p.file_url) {
-                let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
-                if(files.length === 1) {
-                    footerHtml = `<button onclick="downloadFile('${files[0]}')" class="btn-download"><i class="fa-solid fa-download"></i> Download File</button>` + footerHtml;
-                } else {
-                    footerHtml = `<button onclick="downloadFile('${files[0]}')" class="btn-download"><i class="fa-solid fa-download"></i> Download First File</button>` + footerHtml;
-                }
-            }
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
             document.getElementById('mediaModal').style.display = 'flex';
