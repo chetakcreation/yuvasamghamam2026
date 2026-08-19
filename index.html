@@ -297,21 +297,37 @@
             checkUserChatState();
         }
 
-        function loadSiteSettings() {
-            const saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+        async function loadSiteSettings() {
+            let saved = {};
+            if (supabaseClient) {
+                try {
+                    const { data, error } = await supabaseClient.from('site_settings').select('*').eq('id', 1).single();
+                    if (data && !error) {
+                        saved = data;
+                        localStorage.setItem('vsk_site_settings', JSON.stringify(data));
+                    } else {
+                        saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+                    }
+                } catch(e) {
+                    saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+                }
+            } else {
+                saved = JSON.parse(localStorage.getItem('vsk_site_settings') || '{}');
+            }
+
             const logoContainer = document.getElementById('logoContainer');
             
             if (saved.logo_url) {
                 logoContainer.innerHTML = `<img src="${saved.logo_url}" alt="Logo">`;
             } else {
-                let titleText = saved.siteTitle || 'യുവസംഗമം 2026';
+                let titleText = saved.site_title || 'യുവസംഗമം 2026';
                 logoContainer.innerHTML = `<span id="mainSiteTitle">${titleText}</span>`;
             }
 
-            if (saved.siteTitle) {
+            if (saved.site_title) {
                 const splashEl = document.getElementById('splashTitle');
-                if (splashEl) splashEl.innerText = saved.siteTitle;
-                document.title = saved.siteTitle;
+                if (splashEl) splashEl.innerText = saved.site_title;
+                document.title = saved.site_title;
             }
 
             if (saved.fb) document.getElementById('footerFb').href = saved.fb;
