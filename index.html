@@ -43,10 +43,7 @@
         .grid-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
         .post-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s; }
         .post-card:hover { transform: translateY(-3px); }
-        .post-media-container { position: relative; width: 100%; height: 160px; background: #000; }
         .post-card img, .post-card video { width: 100%; height: 160px; object-fit: cover; }
-        .multi-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
-        
         .post-body { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .post-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; color: var(--dark); }
         .post-tag { display: inline-block; background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 6px; width: max-content; }
@@ -128,7 +125,7 @@
 <body>
 
     <div id="splash-screen">
-        <h1 id="splashTitle">യുവസംഗമം 2026</h1>
+        <h1 id="splashTitle">YuvaSangamam 2026</h1>
     </div>
 
     <header>
@@ -254,7 +251,7 @@
         let userName = localStorage.getItem('vsk_user_name');
 
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Njk2NjE1OCwiZXhwIjoyMTAyNTQyMTU4fQ.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA'; // അപ്ഡേറ്റ് ചെയ്ത കീ ആവശ്യമെങ്കിൽ ഉപയോഗിക്കുക
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
         let supabaseClient = null;
         let allPosts = [];
         let currentTab = 'all';
@@ -415,24 +412,20 @@
             let html = '';
             posts.forEach(p => {
                 let mediaHtml = '';
-                let fileUrls = [];
-                
-                if (p.file_url) {
-                    // കോമ വെച്ച് ലിങ്കുകൾ വേർതിരിക്കുന്നു (Multiple Files Support)
-                    fileUrls = p.file_url.split(',').map(url => url.trim()).filter(url => url.length > 0);
-                }
+                let firstFileUrl = '';
 
-                if (fileUrls.length > 0) {
-                    let firstUrl = fileUrls[0];
-                    if (firstUrl.match(/\.(mp4|webm|ogg)$/i)) {
-                        mediaHtml = `<video src="${firstUrl}"></video>`;
-                    } else {
-                        mediaHtml = `<img src="${firstUrl}" alt="Media">`;
+                if (p.file_url) {
+                    // ഒന്നിലധികം ഫയലുകൾ കോമ വെച്ച് സ്പ്ലിറ്റ് ചെയ്യുന്നു
+                    let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
+                    if (files.length > 0) {
+                        firstFileUrl = files[0];
+                        if (firstFileUrl.match(/\.(mp4|webm|ogg)$/i)) {
+                            mediaHtml = `<video src="${firstFileUrl}"></video>`;
+                        } else {
+                            mediaHtml = `<img src="${firstFileUrl}" alt="Media">`;
+                        }
                     }
                 }
-
-                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ ബാഡ്ജ് കാണിക്കാൻ
-                let multiBadgeHtml = fileUrls.length > 1 ? `<div class="multi-badge"><i class="fa-solid fa-images"></i> +${fileUrls.length - 1}</div>` : '';
                 
                 let postDataStr = encodeURIComponent(JSON.stringify(p));
                 let encodedTitle = encodeURIComponent(p.title || 'YuvaSangamam 2026');
@@ -441,10 +434,7 @@
 
                 html += `
                     <div class="post-card" onclick='openModal("${postDataStr}")'>
-                        <div class="post-media-container">
-                            ${mediaHtml}
-                            ${multiBadgeHtml}
-                        </div>
+                        ${mediaHtml}
                         <div class="post-body">
                             <div>
                                 <h3 class="post-title">${p.title || ''}</h3>
@@ -453,7 +443,7 @@
                             <div>
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
-                                    ${p.file_url ? `<button onclick="downloadAllFiles('${p.file_url}')"><i class="fa-solid fa-download"></i> Download (${fileUrls.length})</button>` : ''}
+                                    ${p.file_url ? `<button onclick="downloadFile('${firstFileUrl}')"><i class="fa-solid fa-download"></i> Download</button>` : ''}
                                     <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
@@ -478,16 +468,8 @@
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(blobUrl);
             } catch (e) {
+                console.error("Download Error, fallback to window.open", e);
                 window.open(fileUrl, '_blank');
-            }
-        }
-
-        async function downloadAllFiles(fileUrlString) {
-            let urls = fileUrlString.split(',').map(u => u.trim()).filter(u => u.length > 0);
-            for (let url of urls) {
-                await downloadFile(url);
-                // ചെറിയൊരു ഇടവേള നൽകി ഒന്നിനുപുറകെ ഒന്നായി ഡൗൺലോഡ് ചെയ്യാൻ
-                await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
 
@@ -496,23 +478,16 @@
             document.getElementById('modalTitle').innerText = p.title || 'Media Preview';
             
             let bodyHtml = '';
-            let fileUrls = [];
             if (p.file_url) {
-                fileUrls = p.file_url.split(',').map(url => url.trim()).filter(url => url.length > 0);
-            }
-
-            if (fileUrls.length > 0) {
-                bodyHtml += `<div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">`;
-                fileUrls.forEach((url, index) => {
-                    if (url.match(/\.(mp4|webm|ogg)$/i)) {
-                        bodyHtml += `<video controls src="${url}" style="width:100%; max-height:350px; border-radius:6px;"></video>`;
+                let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
+                files.forEach((fUrl, index) => {
+                    if (fUrl.match(/\.(mp4|webm|ogg)$/i)) {
+                        bodyHtml += `<div style="margin-bottom:10px;"><video controls src="${fUrl}" style="width:100%; max-height:300px; border-radius:6px;"></video></div>`;
                     } else {
-                        bodyHtml += `<img src="${url}" alt="Preview ${index + 1}" style="max-width:100%; max-height:350px; border-radius:6px; object-fit:contain;">`;
+                        bodyHtml += `<div style="margin-bottom:10px;"><img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:300px; border-radius:6px;"></div>`;
                     }
                 });
-                bodyHtml += `</div>`;
             }
-
             bodyHtml += `<p style="margin-top:12px; font-size:15px; font-weight:bold;">${p.title || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:13px; color:#555;">${p.description || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:12px; color:#777;"><b>സംഘജില്ല:</b> ${p.sanghajilla || 'General'} | <b>വിഭാഗം:</b> ${p.tab_category || ''}</p>`;
@@ -521,7 +496,12 @@
 
             let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
             if (p.file_url) {
-                footerHtml = `<button onclick="downloadAllFiles('${p.file_url}')" class="btn-download"><i class="fa-solid fa-download"></i> Download All Files</button>` + footerHtml;
+                let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
+                if(files.length === 1) {
+                    footerHtml = `<button onclick="downloadFile('${files[0]}')" class="btn-download"><i class="fa-solid fa-download"></i> Download File</button>` + footerHtml;
+                } else {
+                    footerHtml = `<button onclick="downloadFile('${files[0]}')" class="btn-download"><i class="fa-solid fa-download"></i> Download First File</button>` + footerHtml;
+                }
             }
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
@@ -541,7 +521,7 @@
         async function sharePost(postId, encodedTitle, encodedDesc, encodedFile) {
             let title = decodeURIComponent(encodedTitle);
             let desc = decodeURIComponent(encodedDesc);
-            let fileUrlString = decodeURIComponent(encodedFile);
+            let fileUrl = decodeURIComponent(encodedFile);
 
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
