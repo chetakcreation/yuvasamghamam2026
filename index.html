@@ -43,7 +43,10 @@
         .grid-posts { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
         .post-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eaeaea; display: flex; flex-direction: column; cursor: pointer; transition: transform 0.2s; }
         .post-card:hover { transform: translateY(-3px); }
+        .post-media-container { position: relative; width: 100%; height: 160px; background: #000; }
         .post-card img, .post-card video { width: 100%; height: 160px; object-fit: cover; }
+        .multi-badge { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: white; font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+        
         .post-body { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .post-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; color: var(--dark); }
         .post-tag { display: inline-block; background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 6px; width: max-content; }
@@ -103,7 +106,6 @@
         .social-links a { color: white; transition: color 0.3s; }
         .social-links a:hover { color: var(--primary); }
 
-        /* Mobile Responsive Extra Adjustments */
         @media(max-width: 900px) {
             .main-wrapper { flex-direction: column; padding: 10px; }
             .sidebar-right { width: 100%; }
@@ -126,7 +128,7 @@
 <body>
 
     <div id="splash-screen">
-        <h1 id="splashTitle">YuvaSangamam 2026</h1>
+        <h1 id="splashTitle">യുവസംഗമം 2026</h1>
     </div>
 
     <header>
@@ -206,7 +208,6 @@
             <div class="chat-msg admin">നമസ്കാരം! യുവസംഗമം 2026-ലേക്ക് സ്വാഗതം. നിങ്ങളെ എങ്ങനെ സഹായിക്കണം?</div>
         </div>
         
-        <!-- Name Input Section (Shows only if name is not set) -->
         <div class="chat-input-area" id="namePromptArea" style="display: none; background: #fff3cd; border-top: 1px solid #ffeeba;">
             <div class="chat-input-row">
                 <input type="text" id="userNameInput" placeholder="ചാറ്റ് ചെയ്യാൻ നിങ്ങളുടെ പേര് നൽകുക...">
@@ -214,7 +215,6 @@
             </div>
         </div>
 
-        <!-- Main Message Input Area -->
         <div class="chat-input-area" id="msgInputArea">
             <div class="chat-input-row">
                 <input type="text" id="chatText" placeholder="സന്ദേശം എഴുതൂ..." onkeypress="if(event.key === 'Enter') sendChatMessage()">
@@ -254,7 +254,7 @@
         let userName = localStorage.getItem('vsk_user_name');
 
         const SUPABASE_URL = 'https://selzpjnwbohrjefcgbpj.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY5NjYxNTgsImV4cCI6MjEwMjU0MjE1OH0.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlbHpwam53Ym9ocmplZmNnYnBqIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4Njk2NjE1OCwiZXhwIjoyMTAyNTQyMTU4fQ.tUhmcCIqSqauwBZvazbbndPy9wPoRBW33-UcFzmHiSA'; // അപ്ഡേറ്റ് ചെയ്ത കീ ആവശ്യമെങ്കിൽ ഉപയോഗിക്കുക
         let supabaseClient = null;
         let allPosts = [];
         let currentTab = 'all';
@@ -415,13 +415,24 @@
             let html = '';
             posts.forEach(p => {
                 let mediaHtml = '';
+                let fileUrls = [];
+                
                 if (p.file_url) {
-                    if (p.file_url.match(/\.(mp4|webm|ogg)$/i)) {
-                        mediaHtml = `<video src="${p.file_url}"></video>`;
+                    // കോമ വെച്ച് ലിങ്കുകൾ വേർതിരിക്കുന്നു (Multiple Files Support)
+                    fileUrls = p.file_url.split(',').map(url => url.trim()).filter(url => url.length > 0);
+                }
+
+                if (fileUrls.length > 0) {
+                    let firstUrl = fileUrls[0];
+                    if (firstUrl.match(/\.(mp4|webm|ogg)$/i)) {
+                        mediaHtml = `<video src="${firstUrl}"></video>`;
                     } else {
-                        mediaHtml = `<img src="${p.file_url}" alt="Media">`;
+                        mediaHtml = `<img src="${firstUrl}" alt="Media">`;
                     }
                 }
+
+                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ ബാഡ്ജ് കാണിക്കാൻ
+                let multiBadgeHtml = fileUrls.length > 1 ? `<div class="multi-badge"><i class="fa-solid fa-images"></i> +${fileUrls.length - 1}</div>` : '';
                 
                 let postDataStr = encodeURIComponent(JSON.stringify(p));
                 let encodedTitle = encodeURIComponent(p.title || 'YuvaSangamam 2026');
@@ -430,7 +441,10 @@
 
                 html += `
                     <div class="post-card" onclick='openModal("${postDataStr}")'>
-                        ${mediaHtml}
+                        <div class="post-media-container">
+                            ${mediaHtml}
+                            ${multiBadgeHtml}
+                        </div>
                         <div class="post-body">
                             <div>
                                 <h3 class="post-title">${p.title || ''}</h3>
@@ -439,7 +453,7 @@
                             <div>
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
-                                    ${p.file_url ? `<button onclick="downloadFile('${p.file_url}')"><i class="fa-solid fa-download"></i> Download</button>` : ''}
+                                    ${p.file_url ? `<button onclick="downloadAllFiles('${p.file_url}')"><i class="fa-solid fa-download"></i> Download (${fileUrls.length})</button>` : ''}
                                     <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
@@ -464,8 +478,16 @@
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(blobUrl);
             } catch (e) {
-                console.error("Download Error, fallback to window.open", e);
                 window.open(fileUrl, '_blank');
+            }
+        }
+
+        async function downloadAllFiles(fileUrlString) {
+            let urls = fileUrlString.split(',').map(u => u.trim()).filter(u => u.length > 0);
+            for (let url of urls) {
+                await downloadFile(url);
+                // ചെറിയൊരു ഇടവേള നൽകി ഒന്നിനുപുറകെ ഒന്നായി ഡൗൺലോഡ് ചെയ്യാൻ
+                await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
 
@@ -474,13 +496,23 @@
             document.getElementById('modalTitle').innerText = p.title || 'Media Preview';
             
             let bodyHtml = '';
+            let fileUrls = [];
             if (p.file_url) {
-                if (p.file_url.match(/\.(mp4|webm|ogg)$/i)) {
-                    bodyHtml += `<video controls autoplay src="${p.file_url}" style="width:100%; max-height:350px;"></video>`;
-                } else {
-                    bodyHtml += `<img src="${p.file_url}" alt="Preview" style="max-width:100%; max-height:350px; border-radius:6px;">`;
-                }
+                fileUrls = p.file_url.split(',').map(url => url.trim()).filter(url => url.length > 0);
             }
+
+            if (fileUrls.length > 0) {
+                bodyHtml += `<div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">`;
+                fileUrls.forEach((url, index) => {
+                    if (url.match(/\.(mp4|webm|ogg)$/i)) {
+                        bodyHtml += `<video controls src="${url}" style="width:100%; max-height:350px; border-radius:6px;"></video>`;
+                    } else {
+                        bodyHtml += `<img src="${url}" alt="Preview ${index + 1}" style="max-width:100%; max-height:350px; border-radius:6px; object-fit:contain;">`;
+                    }
+                });
+                bodyHtml += `</div>`;
+            }
+
             bodyHtml += `<p style="margin-top:12px; font-size:15px; font-weight:bold;">${p.title || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:13px; color:#555;">${p.description || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:12px; color:#777;"><b>സംഘജില്ല:</b> ${p.sanghajilla || 'General'} | <b>വിഭാഗം:</b> ${p.tab_category || ''}</p>`;
@@ -489,7 +521,7 @@
 
             let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
             if (p.file_url) {
-                footerHtml = `<button onclick="downloadFile('${p.file_url}')" class="btn-download"><i class="fa-solid fa-download"></i> Download File</button>` + footerHtml;
+                footerHtml = `<button onclick="downloadAllFiles('${p.file_url}')" class="btn-download"><i class="fa-solid fa-download"></i> Download All Files</button>` + footerHtml;
             }
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
@@ -509,7 +541,7 @@
         async function sharePost(postId, encodedTitle, encodedDesc, encodedFile) {
             let title = decodeURIComponent(encodedTitle);
             let desc = decodeURIComponent(encodedDesc);
-            let fileUrl = decodeURIComponent(encodedFile);
+            let fileUrlString = decodeURIComponent(encodedFile);
 
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
@@ -519,19 +551,6 @@
             if (navigator.share) {
                 try {
                     let shareData = { title: title, text: shareText };
-                    if (fileUrl && navigator.canShare) {
-                        try {
-                            const response = await fetch(fileUrl);
-                            const blob = await response.blob();
-                            let fileName = fileUrl.split('/').pop().split('?')[0] || 'media';
-                            const file = new File([blob], fileName, { type: blob.type });
-                            if (navigator.canShare({ files: [file] })) {
-                                shareData.files = [file];
-                            }
-                        } catch (err) {
-                            console.log("File fetch for share failed, sharing text only", err);
-                        }
-                    }
                     await navigator.share(shareData);
                 } catch (err) {
                     console.log('Error sharing:', err);
