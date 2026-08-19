@@ -48,7 +48,7 @@
         .post-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; color: var(--dark); }
         .post-tag { display: inline-block; background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 6px; width: max-content; }
         .post-actions { display: flex; gap: 6px; margin-top: 8px; border-top: 1px solid var(--gray); padding-top: 8px; flex-wrap: wrap; }
-        .post-actions button, .post-actions a { flex: 1; min-width: 80px; padding: 6px 4px; font-size: 11px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; cursor: pointer; text-decoration: none; color: var(--dark); font-weight: 600; white-space: nowrap; }
+        .post-actions button, .post-actions a { flex: 1; padding: 6px 4px; font-size: 11px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; cursor: pointer; text-decoration: none; color: var(--dark); font-weight: 600; white-space: nowrap; }
         .post-actions button:hover, .post-actions a:hover { background: var(--gray); }
 
         .vsk-embed-box { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; height: 450px; display: flex; flex-direction: column; }
@@ -431,7 +431,7 @@
                 let encodedDesc = encodeURIComponent(p.description || '');
                 let encodedFile = encodeURIComponent(p.file_url || '');
 
-                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ കാർഡിൽ ഡൗൺലോഡ് ബട്ടണുകൾ ഒന്നിനൊന്ന് താഴെയായി കൃത്യമായി വരുന്ന രീതി
+                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ കാർഡിൽ ഡൗൺലോഡ് ഓപ്ഷനുകൾ ക്രമീകരിക്കുന്നു
                 let downloadButtonsHtml = '';
                 if (p.file_url) {
                     let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
@@ -493,22 +493,22 @@
             if (p.file_url) {
                 let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
                 
-                // ഓരോ ഫയലിനും താഴെ വെവ്വേറെ ഡൗൺലോഡ് ബട്ടൺ ലഭിക്കുന്ന രീതിയിൽ മോഡൽ ബോഡി ക്രമീകരിക്കുന്നു
+                // ഓരോ ഫയലിനും പ്രത്യേകം പ്രിവ്യൂവും ഡൗൺലോഡ് ബട്ടണും നൽകുന്നു
                 files.forEach((fUrl, index) => {
-                    let fileLabel = files.length > 1 ? `ഫയൽ ${index + 1}` : 'ഈ ഫയൽ';
+                    let fileLabel = files.length > 1 ? `ഫയൽ ${index + 1}` : 'ഫയൽ';
                     if (fUrl.match(/\.(mp4|webm|ogg)$/i)) {
                         bodyHtml += `
-                            <div style="margin-bottom:15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">
                                 <video controls src="${fUrl}" style="width:100%; max-height:300px; border-radius:6px;"></video>
-                                <div style="margin-top: 8px;">
+                                <div style="margin-top:8px;">
                                     <button onclick="downloadFile('${fUrl}')" class="btn-download"><i class="fa-solid fa-download"></i> ${fileLabel} ഡൗൺലോഡ് ചെയ്യുക</button>
                                 </div>
                             </div>`;
                     } else {
                         bodyHtml += `
-                            <div style="margin-bottom:15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">
                                 <img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:300px; border-radius:6px;">
-                                <div style="margin-top: 8px;">
+                                <div style="margin-top:8px;">
                                     <button onclick="downloadFile('${fUrl}')" class="btn-download"><i class="fa-solid fa-download"></i> ${fileLabel} ഡൗൺലോഡ് ചെയ്യുക</button>
                                 </div>
                             </div>`;
@@ -544,13 +544,16 @@
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
 
-            let files = fileUrlStr ? fileUrlStr.split(',').map(f => f.trim()).filter(f => f) : [];
-            let fileLinksText = '';
-            if (files.length > 0) {
-                fileLinksText = `\n📂 ഫയലുകൾ:\n` + files.map((f, i) => `ഫയൽ ${i+1}: ${f}`).join('\n');
+            // ഒന്നിലധികം ഫയൽ ലിങ്കുകൾ ഉണ്ടെങ്കിൽ അവയും ഷെയർ ടെക്സ്റ്റിൽ ഉൾപ്പെടുത്താം
+            let filesListText = '';
+            if (fileUrlStr) {
+                let files = fileUrlStr.split(',').map(f => f.trim()).filter(f => f);
+                files.forEach((f, idx) => {
+                    filesListText += `🔗 ഫയൽ ${idx + 1}: ${f}\n`;
+                });
             }
 
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n' : ''}${fileLinksText}\n\n🔗 പോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nകൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}${filesListText}\nപോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nകൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
 
             if (navigator.share) {
                 try {
@@ -561,7 +564,7 @@
                 }
             } else {
                 navigator.clipboard.writeText(shareText);
-                alert("പോസ്റ്റ് വിവരങ്ങളും ലിങ്കുകളും കോപ്പി ചെയ്തു!");
+                alert("പോസ്റ്റ് വിവരങ്ങളും ഫയൽ ലിങ്കുകളും കോപ്പി ചെയ്തു!");
             }
         }
 
@@ -631,7 +634,7 @@
             } else if (contentHtml.includes('[File:')) {
                 let parts = contentHtml.split('[File:');
                 let textPart = parts[0];
-                let fileUrl = parts[1][cite: 3]? parts[1].replace(']', '').trim() : '';
+                let fileUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
                 let fileName = fileUrl ? fileUrl.split('/').pop().split('_').pop() : 'Download File';
                 contentHtml = `${textPart}<br><button onclick="downloadFile('${fileUrl}')" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</button>`;
             }
@@ -660,12 +663,13 @@
                         let isMyMsg = m.sender_name === userName;
                         let bubbleClass = m.is_admin ? 'admin' : (isMyMsg ? 'user' : '');
                         
-                        , if (bubbleClass) {
+                        if (bubbleClass) {
                             let formattedMsg = formatChatMessage(m.message);
                             html += `<div class="chat-msg ${bubbleClass}">${formattedMsg}</div>`;
                         }
                     });
                 }
+                chatBox.html = html;
                 chatBox.innerHTML = html;
                 chatBox.scrollTop = chatBox.scrollHeight;
             } catch (e) {
