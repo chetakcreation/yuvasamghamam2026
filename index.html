@@ -47,8 +47,8 @@
         .post-body { padding: 12px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
         .post-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; color: var(--dark); }
         .post-tag { display: inline-block; background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 6px; width: max-content; }
-        .post-actions { display: flex; gap: 6px; margin-top: 8px; border-top: 1px solid var(--gray); padding-top: 8px; flex-wrap: wrap; }
-        .post-actions button, .post-actions a { flex: 1; min-width: 45%; padding: 6px 4px; font-size: 11px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; cursor: pointer; text-decoration: none; color: var(--dark); font-weight: 600; white-space: nowrap; }
+        .post-actions { display: flex; gap: 8px; margin-top: 8px; border-top: 1px solid var(--gray); padding-top: 8px; }
+        .post-actions button, .post-actions a { flex: 1; padding: 6px 4px; font-size: 11px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; cursor: pointer; text-decoration: none; color: var(--dark); font-weight: 600; white-space: nowrap; }
         .post-actions button:hover, .post-actions a:hover { background: var(--gray); }
 
         .vsk-embed-box { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; height: 450px; display: flex; flex-direction: column; }
@@ -431,17 +431,6 @@
                 let encodedDesc = encodeURIComponent(p.description || '');
                 let encodedFile = encodeURIComponent(p.file_url || '');
 
-                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ കാർഡിൽ ഡൗൺലോഡ് ഓപ്ഷൻ മാറ്റുകയോ അല്ലെങ്കിൽ എല്ലാ ലിങ്കുകളും നൽകുകയോ ചെയ്യാം
-                let downloadBtnHtml = '';
-                if (p.file_url) {
-                    let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
-                    if (files.length === 1) {
-                        downloadBtnHtml = `<button onclick="downloadFile('${files[0]}')"><i class="fa-solid fa-download"></i> Download</button>`;
-                    } else {
-                        downloadBtnHtml = `<button onclick='openModal("${postDataStr}")'><i class="fa-solid fa-download"></i> Download (${files.length})</button>`;
-                    }
-                }
-
                 html += `
                     <div class="post-card" onclick='openModal("${postDataStr}")'>
                         ${mediaHtml}
@@ -453,7 +442,7 @@
                             <div>
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
-                                    ${downloadBtnHtml}
+                                    ${p.file_url ? `<button onclick="downloadAllFiles('${encodedFile}')"><i class="fa-solid fa-download"></i> Download</button>` : ''}
                                     <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
@@ -464,6 +453,7 @@
             grid.innerHTML = html;
         }
 
+        // ഒറ്റ ഫയൽ ഡൗൺലോഡ് ചെയ്യാൻ
         async function downloadFile(fileUrl) {
             try {
                 const response = await fetch(fileUrl);
@@ -483,26 +473,49 @@
             }
         }
 
+        // പോസ്റ്റിലുള്ള എല്ലാ ഫയലുകളും ഒരുമിച്ച് ഡൗൺലോഡ് ചെയ്യാൻ
+        async function downloadAllFiles(encodedFile) {
+            let fileUrlStr = decodeURIComponent(encodedFile);
+            let files = fileUrlStr.split(',').map(f => f.trim()).filter(f => f);
+            
+            if (files.length === 1) {
+                downloadFile(files[0]);
+            } else {
+                for (let i = 0; i < files.length; i++) {
+                    await downloadFile(files[i]);
+                    // ചെറിയൊരു ഇടവേള (Browser Block ചെയ്യാതിരിക്കാൻ)
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+            }
+        }
+
         function openModal(encodedData) {
             let p = JSON.parse(decodeURIComponent(encodedData));
             document.getElementById('modalTitle').innerText = p.title || 'Media Preview';
             
             let bodyHtml = '';
-            let files = [];
+            let encodedFile = encodeURIComponent(p.file_url || '');
+            let encodedTitle = encodeURIComponent(p.title || 'YuvaSangamam 2026');
+            let encodedDesc = encodeURIComponent(p.description || '');
+
             if (p.file_url) {
-                files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
+                let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
                 files.forEach((fUrl, index) => {
+                    let encodedSingleFile = encodeURIComponent(fUrl);
+                    bodyHtml += `<div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">`;
                     if (fUrl.match(/\.(mp4|webm|ogg)$/i)) {
-                        bodyHtml += `<div style="margin-bottom:15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                            <video controls src="${fUrl}" style="width:100%; max-height:300px; border-radius:6px;"></video>
-                            <div style="margin-top:5px;"><button onclick="downloadFile('${fUrl}')" class="btn-download" style="padding:4px 10px; font-size:11px;"><i class="fa-solid fa-download"></i> Download Video ${index + 1}</button></div>
-                        </div>`;
+                        bodyHtml += `<video controls src="${fUrl}" style="width:100%; max-height:280px; border-radius:6px;"></video>`;
                     } else {
-                        bodyHtml += `<div style="margin-bottom:15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                            <img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:300px; border-radius:6px;">
-                            <div style="margin-top:5px;"><button onclick="downloadFile('${fUrl}')" class="btn-download" style="padding:4px 10px; font-size:11px;"><i class="fa-solid fa-download"></i> Download Image ${index + 1}</button></div>
-                        </div>`;
+                        bodyHtml += `<img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:280px; border-radius:6px;">`;
                     }
+                    // ഓരോ ഫയലിന്റെയും താഴെ ഡൗൺലോഡ് & ഷെയർ ബട്ടണുകൾ
+                    bodyHtml += `
+                        <div style="display:flex; gap:10px; margin-top:8px; justify-content:center;">
+                            <button onclick="downloadFile('${fUrl}')" class="btn-download" style="font-size:11px; padding:4px 8px;"><i class="fa-solid fa-download"></i> ഈ ഫയൽ മാത്രം Download</button>
+                            <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedSingleFile}')" class="btn-download" style="font-size:11px; padding:4px 8px; background:var(--dark);"><i class="fa-solid fa-share-nodes"></i> ഈ ഫയൽ Share</button>
+                        </div>
+                    `;
+                    bodyHtml += `</div>`;
                 });
             }
             bodyHtml += `<p style="margin-top:12px; font-size:15px; font-weight:bold;">${p.title || ''}</p>`;
@@ -512,6 +525,9 @@
             document.getElementById('modalBody').innerHTML = bodyHtml;
 
             let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
+            if (p.file_url) {
+                footerHtml = `<button onclick="downloadAllFiles('${encodedFile}')" class="btn-download"><i class="fa-solid fa-download"></i> എല്ലാ ഫയലുകളും ഒരുമിച്ച് Download</button>` + footerHtml;
+            }
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
             document.getElementById('mediaModal').style.display = 'flex';
@@ -530,20 +546,13 @@
         async function sharePost(postId, encodedTitle, encodedDesc, encodedFile) {
             let title = decodeURIComponent(encodedTitle);
             let desc = decodeURIComponent(encodedDesc);
-            let fileUrlStr = decodeURIComponent(encodedFile);
+            let fileUrl = decodeURIComponent(encodedFile);
 
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
+            let mainSiteLink = window.location.origin;
 
-            let filesListText = "";
-            if (fileUrlStr) {
-                let files = fileUrlStr.split(',').map(f => f.trim()).filter(f => f);
-                files.forEach((f, idx) => {
-                    filesListText += `🔗 ഫയൽ ${idx + 1}: ${f}\n`;
-                });
-            }
-
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}${filesListText}\nപോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nകൂടുതൽ വിവരങ്ങൾക്ക് സൈറ്റ് സന്ദർശിക്കൂ:\n${window.location.origin}`;
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}ഫയൽ ലിങ്ക്:\n${fileUrl}\n\nപോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nസൈറ്റ് സന്ദർശിക്കൂ:\n${mainSiteLink}`;
 
             if (navigator.share) {
                 try {
@@ -554,7 +563,7 @@
                 }
             } else {
                 navigator.clipboard.writeText(shareText);
-                alert("പോസ്റ്റ് വിവരങ്ങളും ഫയൽ ലിങ്കുകളും കോപ്പി ചെയ്തു!");
+                alert("പോസ്റ്റ് വിവരങ്ങളും ലിങ്കുകളും കോപ്പി ചെയ്തു!");
             }
         }
 
@@ -580,8 +589,8 @@
             try {
                 if (supabaseClient && file) {
                     const fileName = Date.now() + '_' + file.name;
-                    const { error: uploadErr } = await supabaseClient.storage.from('uploads').upload(fileName, file);
-                    if (uploadErr) throw uploadErr;
+                    const { error: optionErr, data: uploadData } = await supabaseClient.storage.from('uploads').upload(fileName, file);
+                    if (optionErr) throw optionErr;
                     const { data: pubData } = supabaseClient.storage.from('uploads').getPublicUrl(fileName);
                     fileUrl = pubData.publicUrl;
                 }
@@ -605,6 +614,7 @@
                     if (insErr) throw insErr;
                 }
 
+                if (msgInput) msgInput.value.print = '';
                 if (msgInput) msgInput.value = '';
                 if (fileInput) fileInput.value = '';
                 loadChatMessages();
@@ -626,7 +636,7 @@
                 let textPart = parts[0];
                 let fileUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
                 let fileName = fileUrl ? fileUrl.split('/').pop().split('_').pop() : 'Download File';
-                contentHtml = `${textPart}<br><button onclick="downloadFile('${fileUrl}')" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</button>`;
+                contentHtml = `${textPart}<br><button onclick="downloadFile('${fileUrl}')" style="display: inline-flex; align-items: cent er; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</button>`;
             }
             return contentHtml;
         }
