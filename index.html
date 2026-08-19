@@ -387,25 +387,26 @@
             filterPosts();
         }
 
-        function filterPosts() {
-            const selectedJilla = document.getElementById('sanghajillaFilter').value;
-            const searchInputEl = document.getElementById('searchInput');
-            const searchText = searchInputEl ? searchInputEl.value.toLowerCase().trim() : '';
+       function filterPosts() {
+    const selectedJilla = document.getElementById('sanghajillaFilter').value;
+    const searchInputEl = document.getElementById('searchInput');
+    const searchText = searchInputEl ? searchInputEl.value.toLowerCase().trim() : '';
 
-            let filtered = allPosts.filter(post => {
-                const matchTab = (currentTab === 'all' || post.tab_category === currentTab);
-                const matchJilla = (!selectedJilla || post.sanghajilla === selectedJilla);
-                
-                let titleMatch = post.title ? post.title.toLowerCase().includes(searchText) : false;
-                let descMatch = post.description ? post.description.toLowerCase().includes(searchText) : false;
-                
-                const matchSearch = (!searchText || titleMatch || descMatch);
-                
-                return matchTab && matchJilla && matchSearch;
-            });
+    let filtered = allPosts.filter(post => {
+        const matchTab = (currentTab === 'all' || post.tab_category === currentTab);
+        const matchJilla = (!selectedJilla || post.sanghajilla === selectedJilla);
+        
+        let titleMatch = post.title ? post.title.toLowerCase().includes(searchText) : false;
+        let descMatch = post.description ? post.description.toLowerCase().includes(searchText) : false;
+        let jillaMatch = post.sanghajilla ? post.sanghajilla.toLowerCase().includes(searchText) : false; // ജില്ലയുടെ പേര് കൂടി പരിശോധിക്കാൻ
+        
+        const matchSearch = (!searchText || titleMatch || descMatch || jillaMatch);
+        
+        return matchTab && matchJilla && matchSearch;
+    });
 
-            renderPosts(filtered);
-        }
+    renderPosts(filtered);
+}
 
         function renderPosts(posts) {
             const grid = document.getElementById('postsGrid');
