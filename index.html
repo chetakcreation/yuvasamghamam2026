@@ -141,7 +141,7 @@
             <i class="fa-solid fa-search" style="color: #777; font-size: 13px;"></i>
             <input type="text" id="searchInput" placeholder="സെർച്ച് ചെയ്യൂ..." onkeyup="filterPosts()" oninput="filterPosts()">
         </div>
-        <a href="https://vskkerala.com" target="_blank" class="vsk-view-btn">VSK View</a>
+        <a href="https://vskkerala.com" target="_blank" class="vsk-view-btn">VSK News</a>
     </header>
 
     <div class="main-wrapper">
@@ -510,7 +510,7 @@
                     }
                     bodyHtml += `
                         <div style="display:flex; gap:10px; margin-top:8px; justify-content:center;">
-                            <button onclick="downloadFile('${fUrl}')" class="btn-download" style="font-size:11px; padding:4px 8px;"><i class="fa-solid fa-download"></i> ഈ ഫയൽ മാത്രം Download</button>
+                            <button onclick="downloadFile('${fUrl}')" class="btn-download" style="font-size:11px; padding:4px 8px;"><i class="fa-solid fa-download"></i>Download</button>
                             <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}')" class="btn-download" style="font-size:11px; padding:4px 8px; background:var(--dark);"><i class="fa-solid fa-share-nodes"></i> Share</button>
                         </div>
                     `;
@@ -525,7 +525,7 @@
 
             let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
             if (p.file_url) {
-                footerHtml = `<button onclick="downloadAllFiles('${encodedFile}')" class="btn-download"><i class="fa-solid fa-download"></i> എല്ലാ ഫയലുകളും ഒരുമിച്ച് Download</button>` + footerHtml;
+                footerHtml = `<button onclick="downloadAllFiles('${encodedFile}')" class="btn-download"><i class="fa-solid fa-download"></i> എല്ലാ ഫയലുകളും ഒരുമിച്ച് Download ചെയ്യാൻ</button>` + footerHtml;
             }
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
