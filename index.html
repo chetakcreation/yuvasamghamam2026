@@ -429,7 +429,6 @@
                 let postDataStr = encodeURIComponent(JSON.stringify(p));
                 let encodedTitle = encodeURIComponent(p.title || 'YuvaSangamam 2026');
                 let encodedDesc = encodeURIComponent(p.description || '');
-                let encodedFile = encodeURIComponent(p.file_url || '');
 
                 html += `
                     <div class="post-card" onclick='openModal("${postDataStr}")'>
@@ -442,8 +441,8 @@
                             <div>
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
-                                    ${p.file_url ? `<button onclick="downloadAllFiles('${encodedFile}')"><i class="fa-solid fa-download"></i> Download</button>` : ''}
-                                    <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
+                                    ${p.file_url ? `<button onclick="downloadAllFiles('${encodeURIComponent(p.file_url)}')"><i class="fa-solid fa-download"></i> Download</button>` : ''}
+                                    <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
                         </div>
@@ -483,7 +482,6 @@
             } else {
                 for (let i = 0; i < files.length; i++) {
                     await downloadFile(files[i]);
-                    // ചെറിയൊരു ഇടവേള (Browser Block ചെയ്യാതിരിക്കാൻ)
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
@@ -501,18 +499,17 @@
             if (p.file_url) {
                 let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
                 files.forEach((fUrl, index) => {
-                    let encodedSingleFile = encodeURIComponent(fUrl);
                     bodyHtml += `<div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">`;
                     if (fUrl.match(/\.(mp4|webm|ogg)$/i)) {
                         bodyHtml += `<video controls src="${fUrl}" style="width:100%; max-height:280px; border-radius:6px;"></video>`;
                     } else {
                         bodyHtml += `<img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:280px; border-radius:6px;">`;
                     }
-                    // ഓരോ ഫയലിന്റെയും താഴെ ഡൗൺലോഡ് & ഷെയർ ബട്ടണുകൾ
+                    // ഓരോ ഫയലിന്റെയും താഴെ ഡൗൺലോഡ് & ഷെയർ ബട്ടണുകൾ (ഫയൽ ലിങ്ക് ഒഴിവാക്കി പോസ്റ്റ് ലിങ്ക് മാത്രം വരുന്ന രീതിയിൽ)
                     bodyHtml += `
                         <div style="display:flex; gap:10px; margin-top:8px; justify-content:center;">
                             <button onclick="downloadFile('${fUrl}')" class="btn-download" style="font-size:11px; padding:4px 8px;"><i class="fa-solid fa-download"></i> ഈ ഫയൽ മാത്രം Download</button>
-                            <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedSingleFile}')" class="btn-download" style="font-size:11px; padding:4px 8px; background:var(--dark);"><i class="fa-solid fa-share-nodes"></i> ഈ ഫയൽ Share</button>
+                            <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}')" class="btn-download" style="font-size:11px; padding:4px 8px; background:var(--dark);"><i class="fa-solid fa-share-nodes"></i> Share</button>
                         </div>
                     `;
                     bodyHtml += `</div>`;
@@ -543,16 +540,16 @@
             }
         }
 
-        async function sharePost(postId, encodedTitle, encodedDesc, encodedFile) {
+        async function sharePost(postId, encodedTitle, encodedDesc) {
             let title = decodeURIComponent(encodedTitle);
             let desc = decodeURIComponent(encodedDesc);
-            let fileUrl = decodeURIComponent(encodedFile);
 
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
             let mainSiteLink = window.location.origin;
 
-            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}ഫയൽ ലിങ്ക്:\n${fileUrl}\n\nപോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nസൈറ്റ് സന്ദർശിക്കൂ:\n${mainSiteLink}`;
+            // ഫയൽ ലിങ്ക് പൂർണ്ണമായി ഒഴിവാക്കി പോസ്റ്റ് വിവരങ്ങളും ലിങ്കും മാത്രം നൽകിയിരിക്കുന്നു
+            let shareText = `യുവസംഗമം 2026\n📌 *${title}*\n${desc ? desc + '\n\n' : ''}പോസ്റ്റ് ലിങ്ക്:\n${postSpecificLink}\n\nസൈറ്റ് സന്ദർശിക്കൂ:\n${mainSiteLink}`;
 
             if (navigator.share) {
                 try {
@@ -563,7 +560,7 @@
                 }
             } else {
                 navigator.clipboard.writeText(shareText);
-                alert("പോസ്റ്റ് വിവരങ്ങളും ലിങ്കുകളും കോപ്പി ചെയ്തു!");
+                alert("പോസ്റ്റ് വിവരങ്ങളും ലിങ്കും കോപ്പി ചെയ്തു!");
             }
         }
 
@@ -614,7 +611,6 @@
                     if (insErr) throw insErr;
                 }
 
-                if (msgInput) msgInput.value.print = '';
                 if (msgInput) msgInput.value = '';
                 if (fileInput) fileInput.value = '';
                 loadChatMessages();
@@ -636,7 +632,7 @@
                 let textPart = parts[0];
                 let fileUrl = parts[1] ? parts[1].replace(']', '').trim() : '';
                 let fileName = fileUrl ? fileUrl.split('/').pop().split('_').pop() : 'Download File';
-                contentHtml = `${textPart}<br><button onclick="downloadFile('${fileUrl}')" style="display: inline-flex; align-items: cent er; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</button>`;
+                contentHtml = `${textPart}<br><button onclick="downloadFile('${fileUrl}')" style="display: inline-flex; align-items: center; gap: 6px; margin-top: 5px; padding: 5px 8px; background: #fff; border: 1px solid #ccc; border-radius: 4px; color: #333; cursor: pointer; font-size: 12px;"><i class="fa-solid fa-file-arrow-down" style="color:var(--primary);"></i> ${fileName}</button>`;
             }
             return contentHtml;
         }
