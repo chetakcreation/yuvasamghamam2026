@@ -48,7 +48,7 @@
         .post-title { font-size: 16px; font-weight: bold; margin-bottom: 6px; color: var(--dark); }
         .post-tag { display: inline-block; background: var(--secondary); color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-top: 6px; width: max-content; }
         .post-actions { display: flex; gap: 6px; margin-top: 8px; border-top: 1px solid var(--gray); padding-top: 8px; flex-wrap: wrap; }
-        .post-actions button, .post-actions a { flex: 1; padding: 6px 4px; font-size: 11px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; cursor: pointer; text-decoration: none; color: var(--dark); font-weight: 600; white-space: nowrap; }
+        .post-actions button, .post-actions a { flex: 1; min-width: 45%; padding: 6px 4px; font-size: 11px; border: 1px solid #ccc; background: white; border-radius: 4px; text-align: center; cursor: pointer; text-decoration: none; color: var(--dark); font-weight: 600; white-space: nowrap; }
         .post-actions button:hover, .post-actions a:hover { background: var(--gray); }
 
         .vsk-embed-box { background: white; border-radius: 8px; overflow: hidden; border: 1px solid #ccc; height: 450px; display: flex; flex-direction: column; }
@@ -431,14 +431,14 @@
                 let encodedDesc = encodeURIComponent(p.description || '');
                 let encodedFile = encodeURIComponent(p.file_url || '');
 
-                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ കാർഡിൽ ഡൗൺലോഡ് ഓപ്ഷനുകൾ ക്രമീകരിക്കുന്നു
-                let downloadButtonsHtml = '';
+                // ഒന്നിലധികം ഫയലുകൾ ഉണ്ടെങ്കിൽ കാർഡിൽ ഡൗൺലോഡ് ഓപ്ഷൻ മാറ്റുകയോ അല്ലെങ്കിൽ എല്ലാ ലിങ്കുകളും നൽകുകയോ ചെയ്യാം
+                let downloadBtnHtml = '';
                 if (p.file_url) {
                     let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
                     if (files.length === 1) {
-                        downloadButtonsHtml = `<button onclick="downloadFile('${files[0]}')"><i class="fa-solid fa-download"></i> Download</button>`;
+                        downloadBtnHtml = `<button onclick="downloadFile('${files[0]}')"><i class="fa-solid fa-download"></i> Download</button>`;
                     } else {
-                        downloadButtonsHtml = `<button onclick="openModal('${postDataStr}')"><i class="fa-solid fa-download"></i> Download (${files.length})</button>`;
+                        downloadBtnHtml = `<button onclick='openModal("${postDataStr}")'><i class="fa-solid fa-download"></i> Download (${files.length})</button>`;
                     }
                 }
 
@@ -453,7 +453,7 @@
                             <div>
                                 <span class="post-tag">${p.sanghajilla || 'General'} | ${p.tab_category || ''}</span>
                                 <div class="post-actions" onclick="event.stopPropagation()">
-                                    ${downloadButtonsHtml}
+                                    ${downloadBtnHtml}
                                     <button onclick="sharePost('${p.id}', '${encodedTitle}', '${encodedDesc}', '${encodedFile}')"><i class="fa-solid fa-share-nodes"></i> Share</button>
                                 </div>
                             </div>
@@ -488,39 +488,30 @@
             document.getElementById('modalTitle').innerText = p.title || 'Media Preview';
             
             let bodyHtml = '';
-            let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
-
+            let files = [];
             if (p.file_url) {
-                let files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
-                
-                // ഓരോ ഫയലിനും പ്രത്യേകം പ്രിവ്യൂവും ഡൗൺലോഡ് ബട്ടണും നൽകുന്നു
+                files = p.file_url.split(',').map(f => f.trim()).filter(f => f);
                 files.forEach((fUrl, index) => {
-                    let fileLabel = files.length > 1 ? `ഫയൽ ${index + 1}` : 'ഫയൽ';
                     if (fUrl.match(/\.(mp4|webm|ogg)$/i)) {
-                        bodyHtml += `
-                            <div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">
-                                <video controls src="${fUrl}" style="width:100%; max-height:300px; border-radius:6px;"></video>
-                                <div style="margin-top:8px;">
-                                    <button onclick="downloadFile('${fUrl}')" class="btn-download"><i class="fa-solid fa-download"></i> ${fileLabel} ഡൗൺലോഡ് ചെയ്യുക</button>
-                                </div>
-                            </div>`;
+                        bodyHtml += `<div style="margin-bottom:15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <video controls src="${fUrl}" style="width:100%; max-height:300px; border-radius:6px;"></video>
+                            <div style="margin-top:5px;"><button onclick="downloadFile('${fUrl}')" class="btn-download" style="padding:4px 10px; font-size:11px;"><i class="fa-solid fa-download"></i> Download Video ${index + 1}</button></div>
+                        </div>`;
                     } else {
-                        bodyHtml += `
-                            <div style="margin-bottom:15px; border-bottom:1px solid #ddd; padding-bottom:10px;">
-                                <img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:300px; border-radius:6px;">
-                                <div style="margin-top:8px;">
-                                    <button onclick="downloadFile('${fUrl}')" class="btn-download"><i class="fa-solid fa-download"></i> ${fileLabel} ഡൗൺലോഡ് ചെയ്യുക</button>
-                                </div>
-                            </div>`;
+                        bodyHtml += `<div style="margin-bottom:15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <img src="${fUrl}" alt="Preview ${index+1}" style="max-width:100%; max-height:300px; border-radius:6px;">
+                            <div style="margin-top:5px;"><button onclick="downloadFile('${fUrl}')" class="btn-download" style="padding:4px 10px; font-size:11px;"><i class="fa-solid fa-download"></i> Download Image ${index + 1}</button></div>
+                        </div>`;
                     }
                 });
             }
-
             bodyHtml += `<p style="margin-top:12px; font-size:15px; font-weight:bold;">${p.title || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:13px; color:#555;">${p.description || ''}</p>`;
             bodyHtml += `<p style="margin-top:6px; font-size:12px; color:#777;"><b>സംഘജില്ല:</b> ${p.sanghajilla || 'General'} | <b>വിഭാഗം:</b> ${p.tab_category || ''}</p>`;
             
             document.getElementById('modalBody').innerHTML = bodyHtml;
+
+            let footerHtml = `<button class="btn-close" onclick="closeModal()">Close</button>`;
             document.getElementById('modalFooter').innerHTML = footerHtml;
 
             document.getElementById('mediaModal').style.display = 'flex';
@@ -544,8 +535,7 @@
             let baseUrl = window.location.origin + window.location.pathname;
             let postSpecificLink = `${baseUrl}?post=${postId}`;
 
-            // ഒന്നിലധികം ഫയൽ ലിങ്കുകൾ ഉണ്ടെങ്കിൽ അവയും ഷെയർ ടെക്സ്റ്റിൽ ഉൾപ്പെടുത്താം
-            let filesListText = '';
+            let filesListText = "";
             if (fileUrlStr) {
                 let files = fileUrlStr.split(',').map(f => f.trim()).filter(f => f);
                 files.forEach((f, idx) => {
@@ -669,7 +659,6 @@
                         }
                     });
                 }
-                chatBox.html = html;
                 chatBox.innerHTML = html;
                 chatBox.scrollTop = chatBox.scrollHeight;
             } catch (e) {
